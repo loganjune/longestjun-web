@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Pic from '../components/Pic.astro';
+import site from '../data/site.json';
+---
+<Layout title="Gallery" current="gallery">
+  <div class="g phead"><h1 class="disp">Gallery</h1><div class="split"><span class="lab soft">写真</span><span class="soft">Images collected along the way.</span></div></div>
+  <div class="g sec">
+    <div class="cards three">
+      {site.gallery.map((g, i) => (
+        <figure class:list={['card', { tall: i % 3 === 1 }]} style="margin:0">
+          <div class="ph fill"><Pic picture={g.picture} alt={g.caption} /></div>
+          <figcaption class="cap"><span class="lab soft">{g.caption}</span></figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,22 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { url, formatDate } from '../../lib/url';
+import { getNotes } from '../../lib/notes';
+
+const notes = await getNotes();
+---
+<Layout title="Notes" current="notes">
+  <div class="g phead"><h1 class="disp">Notes</h1><div class="split"><span class="lab soft">記録</span><span class="soft">Short writing about making things.</span></div></div>
+  <div class="g sec">
+    {notes.length === 0 && <p class="soft">No notes yet.</p>}
+    <ul class="rows">
+      {notes.map((n) => (
+        <li><a href={url(`notes/${n.id}`)} class="r" style="grid-template-columns:8em minmax(0,1fr) auto">
+          <span class="lab soft">{formatDate(n.data.date)}</span>
+          <span>{n.data.title}{n.data.description && <span class="soft" style="display:block;font-size:17px">{n.data.description}</span>}</span>
+          <span class="arrow">→</span>
+        </a></li>
+      ))}
+    </ul>
+  </div>
+</Layout>

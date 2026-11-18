@@ -1,0 +1,34 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { render } from 'astro:content';
+import { url, formatDate } from '../../lib/url';
+import { getNotes } from '../../lib/notes';
+
+export async function getStaticPaths() {
+  const notes = await getNotes();
+  return notes.map((note, i) => ({
+    params: { id: note.id },
+    props: { note, newer: notes[i - 1], older: notes[i + 1] },
+  }));
+}
+
+const { note, newer, older } = Astro.props;
+const { Content } = await render(note);
+---
+<Layout title={note.data.title} description={note.data.description} current="notes">
+  <div class="g note-head">
+    <a class="lab soft" href={url('notes')} style="text-decoration:none">← All notes</a>
+    <h1>{note.data.title}</h1>
+    {note.data.description && <p class="desc">{note.data.description}</p>}
+  </div>
+  <div class="g sec split" style="padding-top:clamp(36px,5vw,72px)">
+    <span class="lab soft">{formatDate(note.data.date)}{note.data.draft && ' · Draft'}</span>
+    <div>
+      <article class="note-body"><Content /></article>
+      <nav class="pager lab" aria-label="More notes">
+        {older ? <a href={url(`notes/${older.id}`)}><span class="soft">← Older</span><span>{older.data.title}</span></a> : <span></span>}
+        {newer ? <a href={url(`notes/${newer.id}`)}><span class="soft">Newer →</span><span>{newer.data.title}</span></a> : <span></span>}
+      </nav>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,39 @@
+---
+import Layout from '../layouts/Layout.astro';
+import site from '../data/site.json';
+const S = site.site;
+---
+<Layout title="Contact" current="contact">
+  <div class="g phead"><h1 class="disp">Contact</h1><div class="split"><span class="lab soft">連絡</span><span></span></div></div>
+  <div class="g sec split">
+    <div>
+      <span class="lab">Write to me</span>
+      <p class="statement" style="margin-top:18px"><a href={`mailto:${S.email}`}>{S.email}</a></p>
+      <p class="soft" style="max-width:24em">For collaborations, questions about a project, or just to say hello.</p>
+      <ul class="rows lab" style="margin-top:28px">
+        <li><a href={S.github}><span>GitHub</span><span class="arrow">→</span></a></li>
+        <li><a href={`mailto:${S.email}`}><span>Email</span><span class="arrow">→</span></a></li>
+      </ul>
+    </div>
+    <form id="form" novalidate data-email={S.email}>
+      <label for="f-name"><span class="lab">Name</span><input id="f-name" autocomplete="name" required /></label>
+      <label for="f-email"><span class="lab">Email</span><input id="f-email" type="email" autocomplete="email" required /></label>
+      <label for="f-msg"><span class="lab">Message</span><textarea id="f-msg" required></textarea></label>
+      <button class="btn lab" type="submit">Send</button>
+      <p class="msg" id="formmsg" hidden></p>
+    </form>
+  </div>
+</Layout>
+
+<script>
+  // The form isn't connected to an inbox yet: it asks people to email instead.
+  const form = document.getElementById('form') as HTMLFormElement;
+  const msg = document.getElementById('formmsg')!;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    msg.hidden = false;
+    msg.textContent = form.checkValidity()
+      ? `Thank you. This form isn't connected to an inbox yet, so please email ${form.dataset.email} directly for now.`
+      : 'Please add your name, a valid email and a message.';
+  });
+</script>

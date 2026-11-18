@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Pic from '../components/Pic.astro';
+import site from '../data/site.json';
+---
+<Layout title="Shop" current="shop">
+  <div class="g phead"><h1 class="disp">Shop</h1><div class="split"><span class="lab soft">ショップ</span><span class="soft">Small things, made in small batches. Opening soon.</span></div></div>
+  <div class="g sec">
+    <div class="cards three">
+      {site.shop.map((x) => (
+        <article class="card">
+          <div class="ph fill"><Pic picture={x.picture} alt="" /></div>
+          <div class="cap"><div><h3>{x.name}</h3><p>{x.details}</p></div><span class="price">{x.price}</span></div>
+          <button class="btn lab" type="button" disabled style="margin-top:12px;opacity:.45;cursor:default">Coming soon</button>
+        </article>
+      ))}
+    </div>
+  </div>
+</Layout>

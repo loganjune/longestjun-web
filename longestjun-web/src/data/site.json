@@ -1,0 +1,198 @@
+{
+  "site": {
+    "tagline": "A little hub for my projects and the things I'm building",
+    "hello": "Named after the longest day of the year, when the sun sets late and there's always time for one more thing.",
+    "location": "Marina del Rey, CA",
+    "email": "longestjune@gmail.com",
+    "github": "https://github.com/loganjune/"
+  },
+  "projects": [
+    {
+      "title": "Solstice",
+      "status": "Building",
+      "year": "2026",
+      "description": "A tiny app that tells you how much daylight is left today.",
+      "picture": "sea",
+      "link": ""
+    },
+    {
+      "title": "Window Light",
+      "status": "Building",
+      "year": "2026",
+      "description": "A set of soft, sunlit desktop wallpapers, one for every month.",
+      "picture": "room",
+      "link": ""
+    },
+    {
+      "title": "Pool Tile",
+      "status": "Shipped",
+      "year": "2026",
+      "description": "A small colour palette tool based on swimming-pool blues.",
+      "picture": "pool",
+      "link": ""
+    },
+    {
+      "title": "Plaster",
+      "status": "Idea",
+      "year": "2026",
+      "description": "A quiet notes app with nothing in it but paper and shadow.",
+      "picture": "wall",
+      "link": ""
+    },
+    {
+      "title": "Dunes",
+      "status": "Shipped",
+      "year": "2025",
+      "description": "A one-page site that slowly changes colour with the time of day.",
+      "picture": "dune",
+      "link": ""
+    },
+    {
+      "title": "Blue Hour",
+      "status": "Idea",
+      "year": "2025",
+      "description": "A playlist generator for the twenty minutes after sunset.",
+      "picture": "dusk",
+      "link": ""
+    }
+  ],
+  "now": [
+    {
+      "label": "Building",
+      "text": "Solstice, a daylight app"
+    },
+    {
+      "label": "Learning",
+      "text": "Type design basics"
+    },
+    {
+      "label": "Reading",
+      "text": "Books about slow work"
+    },
+    {
+      "label": "Collecting",
+      "text": "Pool-tile blues"
+    }
+  ],
+  "gallery": [
+    {
+      "picture": "sea",
+      "caption": "Morning haze"
+    },
+    {
+      "picture": "pool",
+      "caption": "Lane four"
+    },
+    {
+      "picture": "wall",
+      "caption": "Afternoon, plaster"
+    },
+    {
+      "picture": "room",
+      "caption": "West window"
+    },
+    {
+      "picture": "dune",
+      "caption": "Soft dunes"
+    },
+    {
+      "picture": "dusk",
+      "caption": "Twenty past eight"
+    }
+  ],
+  "shop": [
+    {
+      "name": "Solstice print",
+      "price": "$28",
+      "details": "A4 giclée print",
+      "picture": "sea"
+    },
+    {
+      "name": "Pool tile stickers",
+      "price": "$8",
+      "details": "Set of six",
+      "picture": "pool"
+    },
+    {
+      "name": "Window Light zine",
+      "price": "$14",
+      "details": "24 pages, risograph",
+      "picture": "room"
+    },
+    {
+      "name": "Plaster notebook",
+      "price": "$18",
+      "details": "Dot grid, 96 pages",
+      "picture": "wall"
+    },
+    {
+      "name": "Dunes postcards",
+      "price": "$10",
+      "details": "Set of five",
+      "picture": "dune"
+    },
+    {
+      "name": "Blue hour tote",
+      "price": "$24",
+      "details": "Natural cotton",
+      "picture": "dusk"
+    }
+  ],
+  "resume": [
+    {
+      "section": "Now",
+      "items": [
+        {
+          "title": "Building longest june",
+          "details": "Designing and making small tools, sites and printed things.",
+          "years": "2026"
+        }
+      ]
+    },
+    {
+      "section": "Experience",
+      "items": [
+        {
+          "title": "Freelance designer",
+          "details": "Identity, websites and small product work for independent clients.",
+          "years": "2024–"
+        },
+        {
+          "title": "Design intern, small studio",
+          "details": "Brand systems and web layouts.",
+          "years": "2023"
+        }
+      ]
+    },
+    {
+      "section": "Education",
+      "items": [
+        {
+          "title": "BA, Design",
+          "details": "Graphic and interaction design.",
+          "years": "2023"
+        }
+      ]
+    },
+    {
+      "section": "Skills",
+      "items": [
+        {
+          "title": "Design",
+          "details": "Interface, identity, layout, typography",
+          "years": ""
+        },
+        {
+          "title": "Building",
+          "details": "HTML, CSS, JavaScript, prototyping",
+          "years": ""
+        },
+        {
+          "title": "Making",
+          "details": "Print, risograph, photography",
+          "years": ""
+        }
+      ]
+    }
+  ]
+}

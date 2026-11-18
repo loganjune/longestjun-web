@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+import site from '../data/site.json';
+import { url } from '../lib/url';
+---
+<Layout title="Resume" current="resume">
+  <div class="g phead"><h1 class="disp">Resume</h1>
+    <div class="split"><span class="lab soft">経歴</span>
+      <span class="lab" style="display:flex;flex-wrap:wrap;gap:8px 24px"><a href={site.site.github}>GitHub →</a><a href={url('contact')}>Full CV on request →</a></span>
+    </div>
+  </div>
+  <div class="g sec res">
+    {site.resume.map((r) => (
+      <div class="split" style="margin-bottom:48px">
+        <span class="lab">{r.section}</span>
+        <ul class="rows">
+          {r.items.map((it) => (
+            <li><div class="r"><span class="lab soft">{it.years || ' '}</span><div><h3>{it.title}</h3><span class="soft" style="font-size:17px">{it.details}</span></div></div></li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+</Layout>

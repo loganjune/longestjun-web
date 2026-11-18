@@ -1,0 +1,112 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Pic from '../components/Pic.astro';
+import site from '../data/site.json';
+import { url, PAGES, formatDate } from '../lib/url';
+import { getNotes } from '../lib/notes';
+
+const S = site.site;
+const featured = site.projects.slice(0, 3);
+const notes = (await getNotes()).slice(0, 3);
+const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
+---
+<Layout overPlate current="">
+  <div class="plate hero" id="heroplate">
+    <video id="herovid" src={url('hero.mp4')} poster={url('hero.jpg')} autoplay muted playsinline preload="auto" disablepictureinpicture aria-label="A dog running across the beach at sunset, past a lifeguard tower"></video>
+    <div class="cap">
+      <span class="lab">{S.tagline}</span>
+      <button id="vidbtn" class="vidbtn" type="button" aria-controls="herovid" aria-label="Pause video"></button>
+    </div>
+    <span class="tate" lang="ja">夏至</span>
+    <h1 class="disp fit"><span>Longest June</span></h1>
+  </div>
+
+  <div class="g sec split">
+    <span class="lab">Hello</span>
+    <p class="statement">{S.hello}</p>
+  </div>
+
+  <div class="g split" style="padding-bottom:clamp(48px,6vw,96px)">
+    <span class="lab">Location</span>
+    <p class="statement" style="font-size:clamp(22px,2vw,28px);display:flex;align-items:center;gap:.4em">
+      <svg width="0.9em" height="0.9em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M12 21.5s-7-6.1-7-11.8A7 7 0 0 1 19 9.7c0 5.7-7 11.8-7 11.8z"/><circle cx="12" cy="9.7" r="2.6"/></svg>
+      <span>{S.location}</span>
+    </p>
+  </div>
+
+  <div class="g split" style="padding-bottom:clamp(56px,8vw,120px)">
+    <span class="lab">Explore</span>
+    <ul class="rows lab">
+      {explore.map((p) => <li><a href={url(p.href)}><span>{p.name}</span><span class="arrow">→</span></a></li>)}
+    </ul>
+  </div>
+
+  {featured.length > 0 && (
+    <div class="plate feat" id="feat">
+      {featured.map((p, i) => <div class="fslide fill" data-off={i > 0 ? '' : undefined}><Pic picture={p.picture} /></div>)}
+      <h2 class="disp fit"><span id="feattitle">{featured[0].title}</span></h2>
+      <nav class="lab" id="featnav" aria-label="Featured projects">
+        {featured.map((p, i) => <button type="button" data-i={i} aria-current={i === 0 ? 'true' : 'false'}>{p.title}</button>)}
+      </nav>
+      <div class="meta lab" id="featmeta"><span>{featured[0].status}</span><br /><span>{featured[0].year}</span></div>
+      <script is:inline type="application/json" id="featdata" set:html={JSON.stringify(featured.map((p) => ({ title: p.title, status: p.status, year: p.year })))}></script>
+    </div>
+  )}
+
+  <div class="g sec split">
+    <span class="lab">Recent notes</span>
+    <ul class="rows">
+      {notes.map((n) => (
+        <li><a href={url(`notes/${n.id}`)} class="r" style="grid-template-columns:8em minmax(0,1fr) auto"><span class="lab soft">{formatDate(n.data.date)}</span><span>{n.data.title}</span><span class="arrow">→</span></a></li>
+      ))}
+    </ul>
+  </div>
+</Layout>
+
+<script>
+  // hero video: plays once, then rests on its last frame; the round button plays/pauses
+  const hv = document.getElementById('herovid') as HTMLVideoElement | null;
+  const vb = document.getElementById('vidbtn');
+  if (hv && vb) {
+    const IC = {
+      play: '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9.5-5.5z" fill="currentColor"/></svg>',
+      pause: '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="1.5" width="3" height="11" fill="currentColor"/><rect x="8.5" y="1.5" width="3" height="11" fill="currentColor"/></svg>',
+    };
+    let want = true;
+    try { want = localStorage.getItem('lj-vid') !== 'paused'; } catch {}
+    hv.muted = true; hv.defaultMuted = true;
+    const label = () => { vb.innerHTML = hv.paused ? IC.play : IC.pause; vb.setAttribute('aria-label', hv.paused ? 'Play video' : 'Pause video'); };
+    const tryPlay = () => { hv.play()?.catch(() => label()); };
+    let started = false;
+    hv.addEventListener('play', () => { started = true; label(); });
+    hv.addEventListener('pause', label);
+    hv.addEventListener('ended', label);
+    hv.addEventListener('canplay', () => { if (want && !started && hv.paused) tryPlay(); }, { once: true });
+    if (want) tryPlay(); else hv.pause();
+    label();
+    vb.addEventListener('click', () => {
+      if (hv.paused) { want = true; tryPlay(); } else { want = false; hv.pause(); }
+      try { localStorage.setItem('lj-vid', want ? 'playing' : 'paused'); } catch {}
+    });
+    addEventListener('pointerdown', function f() { if (want && !started && hv.paused) tryPlay(); removeEventListener('pointerdown', f); });
+  }
+
+  // featured projects: switch the big picture and title
+  const feat = document.getElementById('feat');
+  if (feat) {
+    const data = JSON.parse(document.getElementById('featdata')!.textContent || '[]');
+    const slides = feat.querySelectorAll<HTMLElement>('.fslide');
+    const nav = document.getElementById('featnav')!;
+    nav.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('button');
+      if (!b) return;
+      const i = Number(b.dataset.i);
+      slides.forEach((s, j) => s.toggleAttribute('data-off', j !== i));
+      nav.querySelectorAll('button').forEach((x, j) => x.setAttribute('aria-current', String(j === i)));
+      document.getElementById('feattitle')!.textContent = data[i].title;
+      document.getElementById('featmeta')!.innerHTML = '';
+      document.getElementById('featmeta')!.append(data[i].status, document.createElement('br'), data[i].year);
+      (window as any).queueFit?.();
+    });
+  }
+</script>
