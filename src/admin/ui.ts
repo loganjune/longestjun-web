@@ -117,9 +117,9 @@ export function toast(message: string, kind: 'ok' | 'error' = 'ok') {
 }
 
 /** Shows a modal dialog. `build` gets a `close` function; Escape closes with `cancelValue`. */
-function dialog<T>(cancelValue: T, build: (close: (v: T) => void) => Node[]): Promise<T> {
+export function dialog<T>(cancelValue: T, build: (close: (v: T) => void) => Node[], cls = 'ed-dialog'): Promise<T> {
   return new Promise((resolve) => {
-    const dlg = el('dialog', { cls: 'ed-dialog' });
+    const dlg = el('dialog', { cls });
     const close = (v: T) => {
       dlg.close();
       dlg.remove();

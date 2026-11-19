@@ -1,15 +1,14 @@
 // Notes: the list, and the word-processor style editor. Notes are saved as Markdown files in
 // src/content/notes/, exactly like before, so the site and the classic editor read them unchanged.
 import type { GitHub } from './github';
-import { parseFrontmatter, serializeFrontmatter, uniqueId } from './frontmatter';
+import { parseFrontmatter, serializeFrontmatter } from './frontmatter';
 import { el, icon, button, busy, toast, confirmBox, row, rowList } from './ui';
-import { saveBar, renderFields } from './forms';
+import { renderFields } from './forms';
 import { isImage } from '../lib/url';
 import { richText } from './richtext';
 import type { View } from './app';
-import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
 import { TagsBox, STORY_TAGS } from './react/TagsField';
+import { text as str, words, readItems, mount, itemSaveBar } from './items';
 
 const DIR = 'src/content/notes';
 
@@ -17,20 +16,13 @@ type NoteMeta = { title: string; date: string; description: string; tags: string
 
 function parseNote(text: string): { meta: NoteMeta; body: string } {
   const { data, body } = parseFrontmatter(text);
-  const str = (v: unknown) => (v === undefined || v === null ? '' : String(v));
-  return { meta: { title: str(data.title), date: str(data.date).slice(0, 10), description: str(data.description), tags: Array.isArray(data.tags) ? data.tags.map(str).filter(Boolean) : [], cover: str(data.cover), draft: data.draft === true }, body };
+  return { meta: { title: str(data.title), date: str(data.date).slice(0, 10), description: str(data.description), tags: words(data.tags), cover: str(data.cover), draft: data.draft === true }, body };
 }
 
 type NoteRow = { id: string; path: string; meta: NoteMeta };
 
 async function loadNotes(gh: GitHub): Promise<NoteRow[]> {
-  const files = (await gh.listDir(DIR)).filter((f) => f.type === 'file' && /\.mdx?$/.test(f.name));
-  const rows = await Promise.all(
-    files.map(async (f) => {
-      const text = (await gh.readText(f.path)) || '';
-      return { id: f.name.replace(/\.mdx?$/, ''), path: f.path, meta: parseNote(text).meta };
-    }),
-  );
+  const rows = await readItems(gh, DIR, (id, text, path) => ({ id, path, meta: parseNote(text).meta }), /\.mdx?$/);
   return rows.sort((a, b) => b.meta.date.localeCompare(a.meta.date) || a.meta.title.localeCompare(b.meta.title));
 }
 
@@ -86,32 +78,22 @@ export async function noteEditor(gh: GitHub, id: string | null, go: (hash: strin
         'ed-btn danger quiet',
       );
 
-  // A new story becomes an ordinary one after its first save (no page reload, so typing isn't interrupted).
-  let fresh = isNew;
-  let currentId = id;
-  const bar = saveBar(
-    isNew ? 'Not saved yet' : 'All changes saved',
-    async (photos) => {
-      const m: NoteMeta = { title: title.value.trim(), date: date.value, description: desc.value.trim(), tags, cover: cover.photo || (cover.picture !== 'dusk' ? cover.picture : ''), draft: draft.checked };
-      if (!m.title) throw new Error('Please give the story a title.');
+  const bar = itemSaveBar({
+    gh,
+    dir: DIR,
+    route: 'notes',
+    noun: 'story',
+    id,
+    path,
+    title: () => title.value,
+    extra: del,
+    onSaved,
+    write: async ({ path, title: t, fresh, photos }) => {
+      const m: NoteMeta = { title: t, date: date.value, description: desc.value.trim(), tags, cover: cover.photo || (cover.picture !== 'dusk' ? cover.picture : ''), draft: draft.checked };
       if (!/^\d{4}-\d{2}-\d{2}$/.test(m.date)) throw new Error('Please pick a date.');
-      if (fresh) {
-        currentId = uniqueId(m.title, new Set((await gh.listDir(DIR)).map((f) => f.name.replace(/\.mdx?$/, ''))));
-        path = `${DIR}/${currentId}.md`;
-      }
-      await gh.commit([{ path, text: serializeFrontmatter(m, doc.getMarkdown()) }, ...photos], `${fresh ? 'Add' : 'Update'} note “${m.title}”`);
-      if (fresh) {
-        fresh = false;
-        history.replaceState(null, '', `#/notes/${encodeURIComponent(currentId!)}`);
-      }
-      onSaved();
+      await gh.commit([{ path, text: serializeFrontmatter(m, doc.getMarkdown()) }, ...photos], `${fresh ? 'Add' : 'Update'} note “${t}”`);
     },
-    del,
-    {
-      // A new story waits for its title (the title also becomes its web address).
-      ready: () => (!fresh ? true : !title.value.trim() ? 'Give it a title to start saving.' : document.activeElement === title ? 'Saves when you leave the title.' : true),
-    },
-  );
+  });
   const changed = bar.ctx.onChange;
 
   const title = el('input', { cls: 'ed-title-input', value: meta.title, placeholder: 'Title', 'aria-label': 'Title' });
@@ -120,19 +102,15 @@ export async function noteEditor(gh: GitHub, id: string | null, go: (hash: strin
   // The cover is a photo or a built-in drawing; notes without one use the "dusk" drawing on their card.
   let tags = meta.tags;
   // The tag picker is a React component, mounted into this plain screen.
-  const tagsHost = el('div');
-  const tagsRoot = createRoot(tagsHost);
-  tagsRoot.render(
-    createElement(TagsBox, {
-      initial: meta.tags,
-      suggestions: STORY_TAGS,
-      hint: 'Used to filter the Stories page. With no tags, it shows under Notes.',
-      onChange: (t: string[]) => {
-        tags = t;
-        bar.ctx.onChange();
-      },
-    }),
-  );
+  const { host: tagsHost, unmount: unmountTags } = mount(TagsBox, {
+    initial: meta.tags,
+    suggestions: STORY_TAGS,
+    hint: 'Used to filter the Stories page. With no tags, it shows under Notes.',
+    onChange: (t: string[]) => {
+      tags = t;
+      bar.ctx.onChange();
+    },
+  });
   const cover = isImage(meta.cover) ? { picture: 'dusk', photo: meta.cover } : { picture: meta.cover || 'dusk', photo: '' };
   const draft = el('input', { type: 'checkbox', checked: meta.draft });
   for (const i of [title, date, desc]) i.addEventListener('input', changed);
@@ -148,7 +126,7 @@ export async function noteEditor(gh: GitHub, id: string | null, go: (hash: strin
     flush: bar.flush,
     destroy: () => {
       doc.destroy();
-      tagsRoot.unmount();
+      unmountTags();
     },
     body: el(
       'div',

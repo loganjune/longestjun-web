@@ -4,12 +4,11 @@
 // Files:
 // - src/data/projects.json: the order of projects ("order"). The first three are featured on the homepage.
 // - src/content/projects/<id>.md: one project. Details and images in the header; the write-up below.
-import { createElement, type ComponentType } from 'react';
-import { createRoot } from 'react-dom/client';
 import type { GitHub, Change } from './github';
-import { parseFrontmatter, serializeFrontmatter, uniqueId } from './frontmatter';
-import { el, button, busy, toast, confirmBox } from './ui';
+import { parseFrontmatter, serializeFrontmatter } from './frontmatter';
+import { button, busy, toast, confirmBox } from './ui';
 import { saveBar } from './forms';
+import { text as str, readItems, mount, itemSaveBar } from './items';
 import type { View } from './app';
 import type { Photo } from './albums';
 import ProjectsEditor from './react/ProjectsEditor';
@@ -34,8 +33,6 @@ export type Project = {
   body: string;
 };
 
-const str = (v: unknown) => (v === undefined || v === null ? '' : String(v));
-
 function parseProject(id: string, text: string): Project {
   const { data, body } = parseFrontmatter(text);
   const status = ['Building', 'Shipped', 'Idea'].includes(str(data.status)) ? (str(data.status) as Project['status']) : 'Building';
@@ -57,17 +54,7 @@ function parseProject(id: string, text: string): Project {
   };
 }
 
-async function loadProjects(gh: GitHub): Promise<Project[]> {
-  const files = (await gh.listDir(DIR)).filter((f) => f.type === 'file' && f.name.endsWith('.md'));
-  return Promise.all(files.map(async (f) => parseProject(f.name.slice(0, -3), (await gh.readText(f.path)) || '')));
-}
-
-function mount<P extends object>(component: ComponentType<P>, props: P) {
-  const host = el('div', { cls: 'ed-react' });
-  const root = createRoot(host);
-  root.render(createElement(component, props));
-  return { host, unmount: () => root.unmount() };
-}
+const loadProjects = (gh: GitHub) => readItems(gh, DIR, parseProject);
 
 async function readOrder(gh: GitHub): Promise<string[]> {
   return JSON.parse((await gh.readText(ORDER)) || '{"order":[]}').order || [];
@@ -111,7 +98,7 @@ export async function projectsView(gh: GitHub, onSaved: () => void): Promise<Vie
 
 export async function projectView(gh: GitHub, id: string | null, go: (hash: string) => void, onSaved: () => void): Promise<View> {
   const isNew = id === null;
-  let path = isNew ? '' : `${DIR}/${id}.md`;
+  const path = isNew ? '' : `${DIR}/${id}.md`;
   let project: Project = {
     id: id || '',
     title: '',
@@ -152,20 +139,18 @@ export async function projectView(gh: GitHub, id: string | null, go: (hash: stri
         'ed-btn danger quiet',
       );
 
-  // A new project becomes an ordinary one after its first save (no reload, so typing isn't interrupted).
-  let fresh = isNew;
-  let currentId = id;
-  const bar = saveBar(
-    isNew ? 'Not saved yet' : 'All changes saved',
-    async (photos) => {
+  const bar = itemSaveBar({
+    gh,
+    dir: DIR,
+    route: 'projects',
+    noun: 'project',
+    id,
+    path,
+    title: () => latest.title,
+    extra: del,
+    onSaved,
+    write: async ({ path, id: newId, title, fresh, photos }) => {
       const p = latest;
-      const title = p.title.trim();
-      if (!title) throw new Error('Please give the project a title.');
-      if (fresh) {
-        currentId = uniqueId(title, new Set((await gh.listDir(DIR)).map((f) => f.name.replace(/\.md$/, ''))));
-        path = `${DIR}/${currentId}.md`;
-      }
-      const newId = currentId;
       const text = serializeFrontmatter(
         {
           title,
@@ -183,20 +168,10 @@ export async function projectView(gh: GitHub, id: string | null, go: (hash: stri
         getWriteUp(),
       );
       const changes: Change[] = [{ path, text }, ...photos];
-      if (fresh) changes.push(orderFile([...(await readOrder(gh)), newId!]));
+      if (fresh) changes.push(orderFile([...(await readOrder(gh)), newId]));
       await gh.commit(changes, `${fresh ? 'Add' : 'Update'} project “${title}”`);
-      if (fresh) {
-        fresh = false;
-        history.replaceState(null, '', `#/projects/${encodeURIComponent(newId!)}`);
-      }
-      onSaved();
     },
-    del,
-    {
-      // A new project waits for its title (the title also becomes its web address).
-      ready: () => (!fresh ? true : !latest.title.trim() ? 'Give the project a title to start saving.' : document.activeElement?.classList.contains('ed-title-input') ? 'Saves when you leave the title.' : true),
-    },
-  );
+  });
 
   const { host, unmount } = mount(ProjectEditor, {
     project,

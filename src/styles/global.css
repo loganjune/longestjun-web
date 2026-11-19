@@ -225,7 +225,7 @@ footer a:hover{text-decoration:underline}
 .story-card p{margin:0}
 .story-card:hover h3{text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--rule)}
 
-/* Gallery: the featured album: a wide photo, a small label, and its name on hover */
+/* Gallery: the featured album: a wide photo, a small label, and its name (fades on hover) */
 .featured-album{display:block;text-decoration:none}
 .featured-album .ph{position:relative;aspect-ratio:16/9;max-height:78svh;overflow:hidden}
 .featured-tag{position:absolute;left:clamp(16px,2.4vw,32px);top:clamp(16px,2.4vw,28px);color:#fff;text-shadow:0 1px 12px rgba(58,44,39,.3)}
@@ -233,11 +233,12 @@ footer a:hover{text-decoration:underline}
 .featured-album .album-title{font:400 22px/1.3 "STIX Two Text",serif;margin:12px 0 0}
 @media(max-width:640px){.featured-album .ph{aspect-ratio:4/5}}
 
-/* Gallery: album name over the cover on hover (mouse); under the cover on phones */
+/* Gallery: album name over the cover, fading away on hover to show the photo (mouse); under the cover on phones */
 .album .ph{position:relative}
 .album-name{position:absolute;inset:0;display:grid;place-items:center;padding:16px;text-align:center;color:#fff;font-size:clamp(34px,5vw,72px);line-height:.95;opacity:0;transition:opacity .3s ease;pointer-events:none;text-shadow:0 1px 18px rgba(58,44,39,.25)}
 @media (hover:hover) and (pointer:fine){
-  .album:hover .album-name,.album:focus-visible .album-name{opacity:1}
+  .album .album-name{opacity:1}
+  .album:hover .album-name,.album:focus-visible .album-name{opacity:0}
   .album .album-title{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 }
 

@@ -2,6 +2,7 @@
 // like a case-study index: title and link, role and tools, description, picture.
 import { useState } from 'react';
 import { Picture } from './Picture';
+import FilterBar, { rise, count } from './FilterBar';
 
 type Project = { id: string; href: string; title: string; status: string; year: string; role: string; tools: string; description: string; picture: string };
 
@@ -13,22 +14,11 @@ export default function ProjectsFilter({ projects }: { projects: Project[] }) {
 
   return (
     <>
-      <div className="split proj-bar">
-        <span className="lab soft" aria-live="polite">
-          {shown.length} {shown.length === 1 ? 'project' : 'projects'}
-        </span>
-        <div className="filters lab" role="group" aria-label="Filter by status">
-          {STATUSES.map((s) => (
-            <button key={s} type="button" aria-pressed={s === status} onClick={() => setStatus(s)}>
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
+      <FilterBar label={count(shown.length, 'project')} live choices={STATUSES} value={status} onChange={setStatus} groupLabel="Filter by status" />
       {/* A new key on each filter change restarts the fade-in. */}
       <ol className="case-rows" key={status}>
         {shown.map((p, i) => (
-          <li className="case-row rise" key={p.id} style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
+          <li className="case-row rise" key={p.id} style={rise(i)}>
             <div className="case-title">
               <h3>
                 <a href={p.href}>{p.title}</a>

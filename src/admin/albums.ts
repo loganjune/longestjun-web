@@ -4,12 +4,11 @@
 // Files:
 // - src/data/gallery.json: single photos ("gallery") and the order of albums ("albums").
 // - src/content/albums/<id>.md: one album. Details and photos in the header; the travel story below.
-import { createElement, type ComponentType } from 'react';
-import { createRoot } from 'react-dom/client';
 import type { GitHub, Change } from './github';
-import { parseFrontmatter, serializeFrontmatter, uniqueId } from './frontmatter';
-import { el, button, busy, toast, confirmBox } from './ui';
+import { parseFrontmatter, serializeFrontmatter } from './frontmatter';
+import { button, busy, toast, confirmBox } from './ui';
 import { saveBar } from './forms';
+import { text as str, words, readItems, mount, itemSaveBar } from './items';
 import type { View } from './app';
 import GalleryEditor, { type GalleryChange } from './react/GalleryEditor';
 import AlbumEditor from './react/AlbumEditor';
@@ -33,8 +32,6 @@ export type Album = {
   body: string;
 };
 
-const str = (v: unknown) => (typeof v === 'string' ? v : v instanceof Date ? v.toISOString().slice(0, 10) : '');
-
 function parseAlbum(id: string, text: string): Album {
   const { data, body } = parseFrontmatter(text);
   const photos = Array.isArray(data.photos) ? data.photos.map((p: any) => ({ photo: str(p?.photo), caption: str(p?.caption) })) : [];
@@ -45,7 +42,7 @@ function parseAlbum(id: string, text: string): Album {
     date: str(data.date).slice(0, 10),
     description: str(data.description),
     cover: str(data.cover),
-    tags: Array.isArray(data.tags) ? data.tags.map(str).filter(Boolean) : [],
+    tags: words(data.tags),
     draft: data.draft === true,
     featured: false,
     photos,
@@ -53,10 +50,14 @@ function parseAlbum(id: string, text: string): Album {
   };
 }
 
-export async function loadAlbums(gh: GitHub): Promise<Album[]> {
-  const files = (await gh.listDir(DIR)).filter((f) => f.type === 'file' && f.name.endsWith('.md'));
-  return Promise.all(files.map(async (f) => parseAlbum(f.name.slice(0, -3), (await gh.readText(f.path)) || '')));
+export const loadAlbums = (gh: GitHub) => readItems(gh, DIR, parseAlbum);
+
+export type GalleryFile = { gallery: Photo[]; albums: string[]; featured?: string };
+async function readGallery(gh: GitHub): Promise<GalleryFile> {
+  const g = JSON.parse((await gh.readText(GALLERY)) || '{}');
+  return { ...g, gallery: g.gallery || [], albums: g.albums || [] };
 }
+const galleryFile = (g: GalleryFile): Change => ({ path: GALLERY, text: JSON.stringify(g, null, 2) + '\n' });
 
 export const coverOf = (a: Pick<Album, 'cover' | 'photos'>) => a.cover || a.photos[0]?.photo || '';
 
@@ -70,29 +71,21 @@ function albumFile(a: Album, story: string): string {
   );
 }
 
-/** Mounts a React screen into a plain element; returns the element and a clean-up function. */
-function mount<P extends object>(component: ComponentType<P>, props: P) {
-  const host = el('div', { cls: 'ed-react' });
-  const root = createRoot(host);
-  root.render(createElement(component, props));
-  return { host, unmount: () => root.unmount() };
-}
-
 // ---------- Gallery screen ----------
 
 export async function galleryView(gh: GitHub, onSaved: () => void): Promise<View> {
-  const gallery = JSON.parse((await gh.readText(GALLERY)) || '{"gallery":[]}');
+  const gallery = await readGallery(gh);
   const albums = await loadAlbums(gh);
   const ids = new Set(albums.map((a) => a.id));
   // Keep the album order in step with the album files that exist.
-  const known: string[] = (gallery.albums || []).filter((id: string) => ids.has(id));
+  const known = gallery.albums.filter((id) => ids.has(id));
   gallery.albums = [...known, ...albums.map((a) => a.id).filter((id) => !known.includes(id)).sort()];
 
   let latest: GalleryChange = { gallery, changedAlbums: [] };
   const bar = saveBar('All changes saved', async (photos) => {
     // One save: the gallery list, plus any album that photos were moved into.
     const albumsChanged: Change[] = latest.changedAlbums.map((a) => ({ path: `${DIR}/${a.id}.md`, text: albumFile(a, a.body) }));
-    await gh.commit([{ path: GALLERY, text: JSON.stringify(latest.gallery, null, 2) + '\n' }, ...albumsChanged, ...photos], 'Update gallery');
+    await gh.commit([galleryFile(latest.gallery), ...albumsChanged, ...photos], 'Update gallery');
     onSaved();
   });
   const { host, unmount } = mount(GalleryEditor, {
@@ -119,22 +112,21 @@ export async function galleryView(gh: GitHub, onSaved: () => void): Promise<View
 // ---------- Album editor ----------
 
 /** Changes gallery.json (album order, featured album) as one more file for the same save. */
-async function editGallery(gh: GitHub, edit: (gallery: { gallery: Photo[]; albums?: string[]; featured?: string }) => void): Promise<Change> {
-  const gallery = JSON.parse((await gh.readText(GALLERY)) || '{"gallery":[]}');
-  gallery.albums ||= [];
+async function editGallery(gh: GitHub, edit: (gallery: GalleryFile) => void): Promise<Change> {
+  const gallery = await readGallery(gh);
   edit(gallery);
-  return { path: GALLERY, text: JSON.stringify(gallery, null, 2) + '\n' };
+  return galleryFile(gallery);
 }
 
 export async function albumView(gh: GitHub, id: string | null, go: (hash: string) => void, onSaved: () => void): Promise<View> {
   const isNew = id === null;
-  let path = isNew ? '' : `${DIR}/${id}.md`;
+  const path = isNew ? '' : `${DIR}/${id}.md`;
   let album: Album = { id: id || '', title: '', location: '', date: new Date().toLocaleDateString('en-CA'), description: '', cover: '', tags: [], draft: false, featured: false, photos: [], body: '' };
   if (!isNew) {
     const text = await gh.readText(path);
     if (text === null) throw new Error('That album doesn’t exist any more.');
     album = parseAlbum(id, text);
-    album.featured = JSON.parse((await gh.readText(GALLERY)) || '{}').featured === id;
+    album.featured = (await readGallery(gh)).featured === id;
   }
   let featuredNow = album.featured;
 
@@ -150,7 +142,7 @@ export async function albumView(gh: GitHub, id: string | null, go: (hash: string
           if (!(await confirmBox('Delete this album?', `“${latest.title || id}” and its page will be removed when you publish. Its photos stay in the repo’s history.`, 'Delete', true))) return;
           await busy(del!, 'Deleting…', async () => {
             await gh.commit([{ path, remove: true }, await editGallery(gh, (g) => {
-              g.albums = g.albums!.filter((x) => x !== id);
+              g.albums = g.albums.filter((x) => x !== id);
               if (g.featured === id) g.featured = '';
             })], `Delete album “${latest.title || id}”`);
             toast('Album deleted from drafts.');
@@ -161,47 +153,33 @@ export async function albumView(gh: GitHub, id: string | null, go: (hash: string
         'ed-btn danger quiet',
       );
 
-  // A new album becomes an ordinary one after its first save (no reload, so typing isn't interrupted).
-  let fresh = isNew;
-  let currentId = id;
-  const bar = saveBar(
-    isNew ? 'Not saved yet' : 'All changes saved',
-    async (photos) => {
+  const bar = itemSaveBar({
+    gh,
+    dir: DIR,
+    route: 'albums',
+    noun: 'album',
+    id,
+    path,
+    title: () => latest.title,
+    extra: del,
+    onSaved,
+    write: async ({ path, id: newId, title, fresh, photos }) => {
       const a = latest;
-      const title = a.title.trim();
-      if (!title) throw new Error('Please give the album a title.');
-      if (fresh) {
-        currentId = uniqueId(title, new Set((await gh.listDir(DIR)).map((f) => f.name.replace(/\.md$/, ''))));
-        path = `${DIR}/${currentId}.md`;
-      }
-      const newId = currentId;
-      const text = albumFile({ ...a, title }, getStory());
-      const changes: Change[] = [{ path, text }, ...photos];
+      const changes: Change[] = [{ path, text: albumFile({ ...a, title }, getStory()) }, ...photos];
       // The gallery list changes for a new album (its place in the order) or a change of featured album.
       if (fresh || a.featured !== featuredNow) {
-        const adding = fresh;
         changes.push(
           await editGallery(gh, (g) => {
-            if (adding) g.albums!.push(newId!);
-            if (a.featured) g.featured = newId!;
+            if (fresh) g.albums.push(newId);
+            if (a.featured) g.featured = newId;
             else if (g.featured === newId) g.featured = '';
           }),
         );
       }
       await gh.commit(changes, `${fresh ? 'Add' : 'Update'} album “${title}”`);
       featuredNow = a.featured;
-      if (fresh) {
-        fresh = false;
-        history.replaceState(null, '', `#/albums/${encodeURIComponent(newId!)}`);
-      }
-      onSaved();
     },
-    del,
-    {
-      // A new album waits for its title (the title also becomes its web address).
-      ready: () => (!fresh ? true : !latest.title.trim() ? 'Give the album a title to start saving.' : document.activeElement?.classList.contains('ed-title-input') ? 'Saves when you leave the title.' : true),
-    },
-  );
+  });
 
   const { host, unmount } = mount(AlbumEditor, {
     album,

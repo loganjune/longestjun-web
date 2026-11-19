@@ -5,12 +5,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import PhotoGrid, { Thumb } from './PhotoGrid';
 import { Icon } from './Icon';
 import { sortable, moveItem } from '../sortable';
-import { coverOf, type Album, type Photo } from '../albums';
-import { el, button, toast, plural } from '../ui';
+import { coverOf, type Album, type Photo, type GalleryFile as Gallery } from '../albums';
+import { el, button, toast, plural, dialog } from '../ui';
 import { showImage } from '../images';
 import type { Ctx } from '../forms';
 
-type Gallery = { gallery: Photo[]; albums: string[]; featured?: string };
 export type GalleryChange = { gallery: Gallery; changedAlbums: Album[] };
 type Props = { gallery: Gallery; albums: Album[]; ctx: Ctx; onChange: (c: GalleryChange) => void };
 
@@ -67,13 +66,10 @@ export default function GalleryEditor({ gallery: initial, albums: initialAlbums,
     [emit],
   );
 
-  const chooseDestination = useCallback(
-    (count: number) => {
-      const ordered = latest.current.g.albums.map((x) => latest.current.albums.find((a) => a.id === x)!).filter(Boolean);
-      return chooseAlbum(ordered, `Where should ${count === 1 ? 'this photo' : `these ${count} photos`} go?`, true);
-    },
-    [],
-  );
+  /** The albums, in their Gallery order. */
+  const ordered = () => latest.current.g.albums.map((x) => latest.current.albums.find((a) => a.id === x)).filter((a): a is Album => !!a);
+
+  const chooseDestination = useCallback((count: number) => chooseAlbum(ordered(), `Where should ${count === 1 ? 'this photo' : `these ${count} photos`} go?`, true), []);
 
   const onDropTarget = useCallback((i: number, target: HTMLElement) => {
     const id = target.dataset.albumId;
@@ -82,7 +78,7 @@ export default function GalleryEditor({ gallery: initial, albums: initialAlbums,
 
   const onMoveOut = useCallback(
     async (i: number) => {
-      const id = await chooseAlbum(latest.current.g.albums.map((x) => latest.current.albums.find((a) => a.id === x)!).filter(Boolean), 'Move to which album?');
+      const id = await chooseAlbum(ordered(), 'Move to which album?');
       if (id) moveToAlbum(i, id);
     },
     [moveToAlbum],
@@ -181,13 +177,7 @@ export default function GalleryEditor({ gallery: initial, albums: initialAlbums,
  * also a "Single photos" choice, which resolves null. Cancel resolves undefined.
  */
 function chooseAlbum(albums: Album[], title: string, singles = false): Promise<string | null | undefined> {
-  return new Promise((resolve) => {
-    const dlg = el('dialog', { cls: 'ed-dialog wide' });
-    const close = (v: string | null | undefined) => {
-      dlg.close();
-      dlg.remove();
-      resolve(v);
-    };
+  return dialog<string | null | undefined>(undefined, (close) => {
     const choices = albums.map((a) => {
       const img = el('img', { alt: '' });
       const cover = coverOf(a);
@@ -199,13 +189,10 @@ function chooseAlbum(albums: Album[], title: string, singles = false): Promise<s
         el('span', {}, a.title || a.id, el('span', { cls: 'soft' }, ` · ${plural(a.photos.length, 'photo')}`)),
       );
     });
-    dlg.append(
+    return [
       el('h2', { cls: 'ed-dialog-title' }, title),
       el('div', { cls: 'pick-grid' }, ...choices),
       el('div', { cls: 'ed-actions' }, button('Cancel', () => close(undefined), 'ed-btn quiet'), singles ? button('Single photos', () => close(null), 'ed-btn solid') : null),
-    );
-    dlg.addEventListener('cancel', () => close(undefined));
-    document.body.append(dlg);
-    dlg.showModal();
-  });
+    ];
+  }, 'ed-dialog wide');
 }

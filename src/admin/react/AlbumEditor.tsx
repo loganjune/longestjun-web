@@ -5,7 +5,7 @@ import PhotoGrid from './PhotoGrid';
 import TagsField, { ALBUM_TAGS } from './TagsField';
 import { richText } from '../richtext';
 import { addPhoto, type Ctx } from '../forms';
-import { el, button, toast } from '../ui';
+import { el, button, toast, dialog } from '../ui';
 import { showImage, PHOTO_ACCEPT } from '../images';
 import type { Album, Photo } from '../albums';
 
@@ -98,13 +98,7 @@ export default function AlbumEditor({ album: initial, ctx, onChange, registerSto
 
 /** A small chooser: one of the album's photos, or a new upload. */
 function pickPhoto(photos: Photo[], ctx: Ctx): Promise<{ src: string; alt: string } | null> {
-  return new Promise((resolve) => {
-    const dlg = el('dialog', { cls: 'ed-dialog wide' });
-    const close = (v: { src: string; alt: string } | null) => {
-      dlg.close();
-      dlg.remove();
-      resolve(v);
-    };
+  return dialog<{ src: string; alt: string } | null>(null, (close) => {
     const input = el('input', { type: 'file', accept: PHOTO_ACCEPT, cls: 'ed-file' });
     input.addEventListener('change', async () => {
       const file = input.files?.[0];
@@ -123,13 +117,10 @@ function pickPhoto(photos: Photo[], ctx: Ctx): Promise<{ src: string; alt: strin
         showImage(img, p.photo);
         return el('button', { type: 'button', cls: 'pick', title: p.caption || 'Photo', on: { click: () => close({ src: p.photo, alt: p.caption }) } }, img);
       });
-    dlg.append(
+    return [
       el('h2', { cls: 'ed-dialog-title' }, 'Add a photo to the story'),
       choices.length ? el('div', { cls: 'pick-grid' }, ...choices) : el('p', { cls: 'soft' }, 'This album has no photos yet.'),
       el('div', { cls: 'ed-actions' }, button('Cancel', () => close(null), 'ed-btn quiet'), el('label', { cls: 'ed-btn solid' }, 'Upload a new photo', input)),
-    );
-    dlg.addEventListener('cancel', () => close(null));
-    document.body.append(dlg);
-    dlg.showModal();
-  });
+    ];
+  }, 'ed-dialog wide');
 }

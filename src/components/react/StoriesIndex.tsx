@@ -2,6 +2,7 @@
 // (All, then the tags in use: Notes, Travel, Build…).
 import { useState } from 'react';
 import { Picture } from './Picture';
+import FilterBar, { rise, count } from './FilterBar';
 
 type Story = { kind: 'Note' | 'Travel'; id: string; href: string; title: string; date: string; description: string; picture: string; location: string; tags: string[] };
 
@@ -13,18 +14,7 @@ export default function StoriesIndex({ stories, tags }: { stories: Story[]; tags
 
   return (
     <>
-      <div className="split proj-bar">
-        <span className="lab soft" aria-live="polite">
-          {shown.length} {shown.length === 1 ? 'story' : 'stories'}
-        </span>
-        <div className="filters lab" role="group" aria-label="Show stories tagged">
-          {['All', ...tags].map((f) => (
-            <button key={f} type="button" aria-pressed={f === filter} onClick={() => setFilter(f)}>
-              {f}
-            </button>
-          ))}
-        </div>
-      </div>
+      <FilterBar label={count(shown.length, 'story', 'stories')} live choices={['All', ...tags]} value={filter} onChange={setFilter} groupLabel="Show stories tagged" />
 
       {!lead ? (
         <p className="sample">Nothing here yet.</p>
@@ -42,7 +32,7 @@ export default function StoriesIndex({ stories, tags }: { stories: Story[]; tags
           {rest.length > 0 && (
             <div className="cards story-cards">
               {rest.map((s, i) => (
-                <a className="card story-card rise" href={s.href} key={s.kind + s.id} style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
+                <a className="card story-card rise" href={s.href} key={s.kind + s.id} style={rise(i)}>
                   <div className="ph fill">
                     <Picture picture={s.picture} alt="" />
                   </div>
