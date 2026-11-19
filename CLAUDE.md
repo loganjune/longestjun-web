@@ -1,0 +1,46 @@
+# longest june: project notes for Claude
+
+Personal portfolio site, "a little hub for my projects and the things I'm building". Owner: GitHub `loganjune`, email longestjune@gmail.com, based in Marina del Rey, CA.
+
+- Stack: Astro 7 static site, no UI framework, plain CSS. Node 22+.
+- Repo: `loganjune/longestjun-web`. The spelling is intentional, without the "e"; don't rename. Default branch `main`. The project lives at the repo root.
+- Live URL: https://longestjune.com (`site: 'https://longestjune.com'` in `astro.config.mjs`, no `base`; the site is served from the domain root).
+- Hosting: Hostinger, set up as a Node.js website linked to this GitHub repo. Hostinger builds from the repo root (`npm run build`, output `dist`) and auto-deploys on every push to `main`. After a deploy, purge the Hostinger cache if changes don't show. There is no GitHub Pages / GitHub Actions deploy any more.
+- Commit `package-lock.json`.
+
+## Commands
+
+- `npm install`, then `npm run dev` → http://localhost:4321/
+- `npm run build` / `npm run preview`
+
+## Status (Nov 18 2026)
+
+- The Astro site builds cleanly and is live on longestjune.com (first live build from commit a2d19b0). Every page was checked in the browser against the design below, on desktop and phone widths.
+- Projects, notes, gallery, shop and resume entries are **sample content** (the footer says so). The owner hasn't supplied real projects yet. Don't invent credentials or work history for them.
+- The contact form isn't wired to anything; it tells people to email instead. The shop buttons say "Coming soon". Don't fake either.
+- `archive-content json/` holds the owner's earlier content export; leave it alone unless asked.
+
+## Structure
+
+- `src/pages/`: index, about, projects (status filter), notes/index, notes/[id], gallery, resume, shop, contact, 404.
+- `src/content/notes/*.md`: notes collection (`src/content.config.ts`, glob loader). Frontmatter: `title`, `date`, optional `description`, `draft` (hidden in production). The file name is the URL id.
+- `src/data/site.json`: everything else editable: `site` (tagline, hello, location, email, github), `projects` (title, status Building|Shipped|Idea, year, description, picture, link), `now`, `gallery`, `shop`, `resume`. The first 3 projects are featured on the homepage.
+- `src/components/Pic.astro`: `picture` is either a built-in drawing name (`sea room pool wall dune dusk`, generated SVG in `src/lib/scene.ts`) or an image path under `public/images/`.
+- `src/lib/url.ts`: `url()` prefixes the base path (now just `/`). Keep using it for internal links and assets so the site still works if a base path is ever added again. `PAGES` drives the menu, footer and explore lists.
+- `src/layouts/Layout.astro`: head, fixed top bar, full-screen menu, footer, plus client scripts (menu, top-bar state, `.fit` text sizing).
+- `public/hero.mp4` / `hero.jpg`: homepage video and poster.
+
+## Design (decided with the owner; keep it)
+
+- Reference: owiu-design.com. Minimal and Japanese-studio-like: full-bleed pictures, giant uppercase serif capitals, small tracked uppercase labels, two-column "label left / content right" rows divided by hairlines with → arrows.
+- Colours: pale pink-sand ground `#f3e6dc`, warm brown ink `#3a2c27`, soft `#7d6a62`, rules `#3a2c2729`. Light blue and pink live only in the pictures. One fixed palette, no dark mode. The owner explicitly rejected a black background.
+- Type: Marcellus (display capitals), EB Garamond (statements/body), Jost (labels), Shippori Mincho (Japanese). Small Japanese labels per page (自己紹介, 制作, 記録, 写真, 経歴, ショップ, 連絡), 夏至 down the hero, and 水無月 in the footer.
+- Pictures show at 80% opacity over the sand ("dreamy"); the hero video at 92%.
+- Hero: the video plays **once** (no loop) and rests on its last frame. A round outlined play/pause **icon** button (no words) sits under the tagline on the video; it must not be in the top bar. "LONGEST JUNE" across the bottom, sized by JS to fit the width. Keep it high enough that the J's tail isn't clipped. Respect autoplay blocking (play on first pointerdown).
+- Top bar: Menu at top-left, GitHub + Contact at top-right, fixed while scrolling. Clear with white text over the hero, then a sand bar with blur once past it.
+- Home order: hero → Hello ("Named after the longest day of the year, when the sun sets late and there's always time for one more thing.") → Location (outlined map-pin SVG icon, **not** an emoji) → Explore index → featured project slider → recent notes.
+- Avoid: emoji icons, words where an icon was asked for, looping video, dark backgrounds.
+
+## Working with the owner
+
+New to the terminal, git and Node, so give exact commands, one step at a time. A VPN on their Mac has caused failed downloads before; suggest turning it off if installs hang. They use GitHub Desktop to commit and push. The Claude GitHub connector currently has read-only access to the repo, so the owner commits changes themselves.

@@ -1,4 +1,4 @@
-/** Builds a link that works under the site's base path (e.g. /longestjun-web/). */
+/** Builds a link that works under the site's base path (currently the domain root, `/`). */
 export function url(path = ''): string {
   if (/^(https?:|mailto:|tel:|#)/.test(path)) return path;
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');

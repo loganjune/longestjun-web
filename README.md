@@ -1,6 +1,6 @@
 # longest june
 
-A little hub for my projects and the things I'm building. Built with [Astro](https://astro.build) and published with GitHub Pages at https://loganjune.github.io/longestjun-web/
+A little hub for my projects and the things I'm building. Built with [Astro](https://astro.build) and hosted on Hostinger at https://longestjune.com
 
 ## First-time setup (on your Mac)
 
@@ -10,8 +10,7 @@ A little hub for my projects and the things I'm building. Built with [Astro](htt
    cd ~/Documents/GitHub/longestjun-web
    npm install
    ```
-   This creates a `node_modules` folder (ignored by Git) and a `package-lock.json` file. **Commit `package-lock.json`**, because the deploy uses it.
-3. On github.com, open the repo → **Settings → Pages → Source → GitHub Actions**. This only has to be done once.
+   This creates a `node_modules` folder (ignored by Git) and updates `package-lock.json`. **Commit `package-lock.json`**, because the deploy uses it.
 
 ## Working on the site
 
@@ -19,9 +18,9 @@ A little hub for my projects and the things I'm building. Built with [Astro](htt
 npm run dev
 ```
 
-Then open http://localhost:4321/longestjun-web/. The page updates as soon as you save a file. Press Control + C in Terminal to stop.
+Then open http://localhost:4321/. The page updates as soon as you save a file. Press Control + C in Terminal to stop.
 
-To publish, commit and push to `main` (for example with GitHub Desktop). The workflow in `.github/workflows/deploy.yml` builds the site and puts it live in a minute or two. You can watch it in the repo's **Actions** tab.
+To publish, commit and push to `main` (for example with GitHub Desktop). Hostinger is linked to this repo: it builds the site (`npm run build`, from the repo root, output `dist`) and puts it live on longestjune.com a minute or two later. You can follow the build under the website's deployments in Hostinger's hPanel. If a change doesn't show up, clear the website's cache in hPanel.
 
 ## Adding a note
 
@@ -69,6 +68,6 @@ Keep the quotes and commas in `site.json` exactly as they are. If the build fail
 | Homepage video | `public/hero.mp4` (poster: `public/hero.jpg`) |
 | Built-in drawings | `src/lib/scene.ts` |
 
-If you rename the repo, change `base` in `astro.config.mjs` to match.
+The site's address is set by `site` in `astro.config.mjs`. If the domain ever changes, update it there.
 
 Contact: longestjune@gmail.com · [github.com/loganjune](https://github.com/loganjune/)
