@@ -1,12 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Pic from '../components/Pic.astro';
-import site from '../data/site.json';
+import { site as S, projects, pic } from '../lib/content';
 import { url, PAGES, formatDate } from '../lib/url';
 import { getNotes } from '../lib/notes';
 
-const S = site.site;
-const featured = site.projects.slice(0, 3);
+const featured = projects.slice(0, 3);
 const notes = (await getNotes()).slice(0, 3);
 const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
 ---
@@ -43,13 +42,12 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
 
   {featured.length > 0 && (
     <div class="plate feat" id="feat">
-      {featured.map((p, i) => <div class="fslide fill" data-off={i > 0 ? '' : undefined}><Pic picture={p.picture} /></div>)}
+      {featured.map((p, i) => <div class="fslide fill" data-off={i > 0 ? '' : undefined}><Pic picture={pic(p)} /></div>)}
       <h2 class="disp fit"><span id="feattitle">{featured[0].title}</span></h2>
       <nav class="lab" id="featnav" aria-label="Featured projects">
-        {featured.map((p, i) => <button type="button" data-i={i} aria-current={i === 0 ? 'true' : 'false'}>{p.title}</button>)}
+        {featured.map((p, i) => <button type="button" data-i={i} data-status={p.status} data-year={p.year} aria-current={i === 0 ? 'true' : 'false'}>{p.title}</button>)}
       </nav>
-      <div class="meta lab" id="featmeta"><span>{featured[0].status}</span><br /><span>{featured[0].year}</span></div>
-      <script is:inline type="application/json" id="featdata" set:html={JSON.stringify(featured.map((p) => ({ title: p.title, status: p.status, year: p.year })))}></script>
+      <div class="meta lab"><span id="featstatus">{featured[0].status}</span><br /><span id="featyear">{featured[0].year}</span></div>
     </div>
   )}
 
@@ -91,21 +89,23 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
     addEventListener('pointerdown', function f() { if (want && !started && hv.paused) tryPlay(); removeEventListener('pointerdown', f); });
   }
 
-  // featured projects: switch the big picture and title
+  // featured projects: switch the big picture and title (each nav button carries its project's details)
   const feat = document.getElementById('feat');
   if (feat) {
-    const data = JSON.parse(document.getElementById('featdata')!.textContent || '[]');
     const slides = feat.querySelectorAll<HTMLElement>('.fslide');
-    const nav = document.getElementById('featnav')!;
-    nav.addEventListener('click', (e) => {
+    const buttons = feat.querySelectorAll<HTMLButtonElement>('#featnav button');
+    const title = document.getElementById('feattitle')!;
+    const status = document.getElementById('featstatus')!;
+    const year = document.getElementById('featyear')!;
+    document.getElementById('featnav')!.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest('button');
       if (!b) return;
       const i = Number(b.dataset.i);
       slides.forEach((s, j) => s.toggleAttribute('data-off', j !== i));
-      nav.querySelectorAll('button').forEach((x, j) => x.setAttribute('aria-current', String(j === i)));
-      document.getElementById('feattitle')!.textContent = data[i].title;
-      document.getElementById('featmeta')!.innerHTML = '';
-      document.getElementById('featmeta')!.append(data[i].status, document.createElement('br'), data[i].year);
+      buttons.forEach((x, j) => x.setAttribute('aria-current', String(j === i)));
+      title.textContent = b.textContent;
+      status.textContent = b.dataset.status!;
+      year.textContent = b.dataset.year!;
       (window as any).queueFit?.();
     });
   }

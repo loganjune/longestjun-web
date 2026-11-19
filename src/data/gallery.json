@@ -1,0 +1,34 @@
+{
+  "gallery": [
+    {
+      "picture": "sea",
+      "photo": "",
+      "caption": "Morning haze"
+    },
+    {
+      "picture": "pool",
+      "photo": "",
+      "caption": "Lane four"
+    },
+    {
+      "picture": "wall",
+      "photo": "",
+      "caption": "Afternoon, plaster"
+    },
+    {
+      "picture": "room",
+      "photo": "",
+      "caption": "West window"
+    },
+    {
+      "picture": "dune",
+      "photo": "",
+      "caption": "Soft dunes"
+    },
+    {
+      "picture": "dusk",
+      "photo": "",
+      "caption": "Twenty past eight"
+    }
+  ]
+}

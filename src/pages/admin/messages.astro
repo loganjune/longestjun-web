@@ -1,0 +1,181 @@
+---
+// Contact-form messages and content backups, for people who can edit the site.
+// Sign-in goes through the same GitHub login helper as the web editor (/admin).
+import Layout from '../../layouts/Layout.astro';
+import PageHead from '../../components/PageHead.astro';
+import { services } from '../../lib/content';
+import { url } from '../../lib/url';
+const ready = Boolean(services.apiUrl && services.authUrl);
+---
+<Layout title="Messages" noindex>
+  <PageHead title="Messages" jp="受信箱">
+    <span class="lab links"><a href={url('admin/')}>Editor →</a><button type="button" id="signout" class="lab" hidden>Sign out</button></span>
+  </PageHead>
+
+  <div id="app" class="g sec" data-api={services.apiUrl.replace(/\/$/, '')} data-auth={services.authUrl.replace(/\/$/, '')}>
+    {ready ? (
+      <div class="split" id="signin">
+        <span class="lab">Sign in</span>
+        <div>
+          <p class="statement" style="margin-top:0">Sign in with the GitHub account you use for the editor.</p>
+          <button type="button" class="btn lab" id="login">Sign in with GitHub</button>
+          <p class="msg" id="status" role="status" hidden></p>
+        </div>
+      </div>
+    ) : (
+      <div class="split"><span class="lab">Not set up</span><p class="statement" style="margin-top:0">The messages service isn't connected yet. Add <code>apiUrl</code> and <code>authUrl</code> to <code>src/data/services.json</code>.</p></div>
+    )}
+
+    <div id="inbox" hidden>
+      <div class="split" style="margin-bottom:56px">
+        <span class="lab">Inbox <span id="count" class="soft"></span></span>
+        <ul class="rows" id="list"></ul>
+      </div>
+      <div class="split">
+        <span class="lab">Backups</span>
+        <div>
+          <p class="soft" style="margin-top:0">A copy of your notes and site text is saved to the database after each publish (checked hourly). GitHub also keeps every version.</p>
+          <ul class="rows" id="backups"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<!-- Global (not scoped) because the list items are created by the script below. -->
+<style is:global>
+  #app [hidden] { display: none !important; }
+  #app .m { display: grid; gap: 6px; padding: 18px 0; }
+  #app .m.unread h3::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); margin-right: 10px; vertical-align: middle; }
+  #app .m h3 { margin: 0; font-weight: 500; }
+  #app .m p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  #app .m .acts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 8px; }
+  #app .m .acts a, #app .m .acts button { min-height: 32px; }
+  #app code { font-size: .85em; }
+</style>
+
+<script>
+  const app = document.getElementById('app')!;
+  const API = app.dataset.api!, AUTH = app.dataset.auth!;
+  const KEY = 'lj-admin-token';
+  const $ = (id: string) => document.getElementById(id)!;
+  const status = (t: string) => { const s = document.getElementById('status'); if (s) { s.hidden = !t; s.textContent = t; } };
+
+  let token = '';
+  try { token = sessionStorage.getItem(KEY) || ''; } catch {}
+
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> & { cls?: string } = {}, ...kids: (Node | string)[]) {
+    const n = document.createElement(tag);
+    const { cls, ...rest } = props as any;
+    if (cls) n.className = cls;
+    Object.assign(n, rest);
+    n.append(...kids); // strings become text, never HTML
+    return n;
+  }
+
+  async function api(path: string, init: RequestInit = {}) {
+    const res = await fetch(API + path, { ...init, headers: { ...(init.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
+    const out = await res.json().catch(() => ({}));
+    if (res.status === 401) { signOut(); throw new Error(out.error || 'Please sign in again.'); }
+    if (!res.ok) throw new Error(out.error || `Request failed (${res.status}).`);
+    return out;
+  }
+
+  // GitHub sign-in through the login helper (the same handshake the editor uses).
+  function login() {
+    status('Waiting for GitHub…');
+    const authOrigin = new URL(AUTH).origin;
+    const popup = window.open(`${AUTH}/auth?provider=github&site_id=${encodeURIComponent(location.hostname)}&scope=repo`, 'lj-auth', 'width=600,height=720');
+    if (!popup) return status('Your browser blocked the sign-in window. Allow pop-ups for this site and try again.');
+    const onMsg = (e: MessageEvent) => {
+      if (e.origin !== authOrigin || typeof e.data !== 'string') return;
+      if (e.data === 'authorizing:github') { (e.source as Window)?.postMessage(e.data, e.origin); return; }
+      const ok = e.data.match(/^authorization:github:success:(.+)$/s);
+      const bad = e.data.match(/^authorization:github:error:(.+)$/s);
+      if (!ok && !bad) return;
+      removeEventListener('message', onMsg);
+      if (bad) return status('Sign-in didn’t work. Please try again.');
+      try { token = JSON.parse(ok![1]).token || ''; } catch { token = ''; }
+      if (!token) return status('Sign-in didn’t work. Please try again.');
+      try { sessionStorage.setItem(KEY, token); } catch {}
+      load();
+    };
+    addEventListener('message', onMsg);
+  }
+
+  function signOut() {
+    token = '';
+    try { sessionStorage.removeItem(KEY); } catch {}
+    $('inbox').hidden = true; $('signout').hidden = true;
+    const s = document.getElementById('signin'); if (s) s.hidden = false;
+  }
+
+  function fmt(iso: string) {
+    return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+
+  function renderMessages(list: any[]) {
+    const ul = $('list');
+    ul.replaceChildren();
+    const unread = list.filter((m) => !m.is_read).length;
+    $('count').textContent = list.length ? `· ${list.length}${unread ? `, ${unread} new` : ''}` : '';
+    if (!list.length) { ul.append(el('li', {}, el('p', { cls: 'soft', style: 'margin:18px 0' } as any, 'No messages yet.'))); return; }
+    for (const m of list) {
+      const toggle = el('button', { type: 'button', cls: 'lab' }, m.is_read ? 'Mark unread' : 'Mark read');
+      const del = el('button', { type: 'button', cls: 'lab' }, 'Delete');
+      const reply = el('a', { cls: 'lab', href: `mailto:${encodeURIComponent(m.email)}?subject=${encodeURIComponent('Re: your message to longest june')}` }, 'Reply →');
+      const li = el('li', { cls: `m${m.is_read ? '' : ' unread'}` },
+        el('span', { cls: 'lab soft' }, fmt(m.created_at)),
+        el('h3', {}, `${m.name} · ${m.email}`),
+        el('p', {}, m.message),
+        el('div', { cls: 'acts' }, reply, toggle, del),
+      );
+      toggle.addEventListener('click', async () => {
+        try { await api(`/messages/${m.id}/read`, { method: 'POST', body: JSON.stringify({ read: !m.is_read }) }); load(); } catch (e) { alert((e as Error).message); }
+      });
+      del.addEventListener('click', async () => {
+        if (!confirm(`Delete the message from ${m.name}? This can’t be undone.`)) return;
+        try { await api(`/messages/${m.id}`, { method: 'DELETE' }); load(); } catch (e) { alert((e as Error).message); }
+      });
+      ul.append(li);
+    }
+  }
+
+  function renderBackups(list: any[]) {
+    const ul = $('backups');
+    ul.replaceChildren();
+    if (!list.length) { ul.append(el('li', {}, el('p', { cls: 'soft', style: 'margin:18px 0' } as any, 'No backups yet. The first appears within an hour of setup.'))); return; }
+    for (const b of list.slice(0, 30)) {
+      const dl = el('button', { type: 'button', cls: 'lab' }, 'Download');
+      dl.addEventListener('click', async () => {
+        try {
+          const data = await api(`/backups/${b.commit_sha}`);
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const a = el('a', { href: URL.createObjectURL(blob), download: `longestjune-backup-${b.committed_at.slice(0, 10)}-${b.commit_sha.slice(0, 7)}.json` });
+          a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        } catch (e) { alert((e as Error).message); }
+      });
+      ul.append(el('li', { cls: 'm' },
+        el('span', { cls: 'lab soft' }, `${fmt(b.committed_at)} · ${b.files} files${b.complete ? '' : ' · in progress'}`),
+        el('p', {}, b.message.split('\n')[0]),
+        el('div', { cls: 'acts' }, dl),
+      ));
+    }
+  }
+
+  async function load() {
+    if (!token) return;
+    status('Loading…');
+    try {
+      const [msgs, backups] = await Promise.all([api('/messages'), api('/backups')]);
+      const s = document.getElementById('signin'); if (s) s.hidden = true;
+      $('inbox').hidden = false; $('signout').hidden = false;
+      renderMessages(msgs.messages); renderBackups(backups.backups);
+      status('');
+    } catch (e) { status((e as Error).message); }
+  }
+
+  document.getElementById('login')?.addEventListener('click', login);
+  $('signout').addEventListener('click', signOut);
+  if (API && AUTH) load();
+</script>

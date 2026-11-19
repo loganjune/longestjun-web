@@ -1,23 +1,24 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Pic from '../components/Pic.astro';
-import site from '../data/site.json';
+import PageHead from '../components/PageHead.astro';
+import { site, now, pic } from '../lib/content';
+const A = site.about;
 ---
 <Layout title="About" current="about">
-  <div class="g phead"><h1 class="disp">About</h1><div class="split"><span class="lab soft">自己紹介</span><span></span></div></div>
+  <PageHead title="About" jp="自己紹介" />
   <div class="g sec split">
     <span class="lab">Who</span>
     <div class="prose">
-      <p class="statement" style="margin-bottom:28px">longest june is my little hub on the internet: a place for the projects I'm working on and the things I'm slowly building.</p>
-      <p>The name comes from the summer solstice, the longest day of the year. That's the feeling I want everything here to have: unhurried, warm, with a little more light than you expected.</p>
-      <p>Some of what lives here is finished. Most of it is still in progress, and that's on purpose. I'd rather show the work while it's happening.</p>
+      <p class="statement" style="margin-bottom:28px">{A.statement}</p>
+      {A.paragraphs.map((p) => <p>{p}</p>)}
     </div>
   </div>
-  <div class="plate fill" style="height:min(70svh,640px)"><Pic picture="room" /></div>
+  <div class="plate fill" style="height:min(70svh,640px)"><Pic picture={pic(A)} /></div>
   <div class="g sec split">
     <span class="lab">Currently</span>
     <ul class="rows">
-      {site.now.map((n) => <li><div class="r" style="grid-template-columns:8em minmax(0,1fr)"><span class="lab soft">{n.label}</span><span>{n.text}</span></div></li>)}
+      {now.map((n) => <li><div class="r" style="grid-template-columns:8em minmax(0,1fr)"><span class="lab soft">{n.label}</span><span>{n.text}</span></div></li>)}
     </ul>
   </div>
 </Layout>

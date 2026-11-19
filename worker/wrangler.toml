@@ -1,0 +1,29 @@
+# Cloudflare Worker: the longest june API (contact form, messages, content backups).
+# Deploy with:  npx wrangler@4 deploy   (from this worker/ folder)
+name = "longestjune-api"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# The GitHub repo whose content is backed up, and whose collaborators may read messages.
+REPO = "loganjune/longestjun-web"
+BRANCH = "main"
+# Web pages allowed to call this API.
+ALLOWED_ORIGINS = "https://longestjune.com,https://www.longestjune.com,http://localhost:4321"
+# Where new-message alerts go.
+NOTIFY_EMAIL = "longestjune@gmail.com"
+# Sender for alerts. onboarding@resend.dev works until you verify longestjune.com in Resend.
+MAIL_FROM = "longest june <onboarding@resend.dev>"
+
+# Secrets are NOT written here. Set them with:
+#   npx wrangler@4 secret put TURNSTILE_SECRET
+#   npx wrangler@4 secret put RESEND_API_KEY
+
+[[d1_databases]]
+binding = "DB"
+database_name = "longestjune"
+database_id = "REPLACE_WITH_DATABASE_ID"
+
+# Check for newly published content every hour and back it up.
+[triggers]
+crons = ["17 * * * *"]

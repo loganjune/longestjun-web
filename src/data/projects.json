@@ -1,0 +1,58 @@
+{
+  "projects": [
+    {
+      "title": "Solstice",
+      "status": "Building",
+      "year": "2026",
+      "description": "A tiny app that tells you how much daylight is left today.",
+      "picture": "sea",
+      "photo": "",
+      "link": ""
+    },
+    {
+      "title": "Window Light",
+      "status": "Building",
+      "year": "2026",
+      "description": "A set of soft, sunlit desktop wallpapers, one for every month.",
+      "picture": "room",
+      "photo": "",
+      "link": ""
+    },
+    {
+      "title": "Pool Tile",
+      "status": "Shipped",
+      "year": "2026",
+      "description": "A small colour palette tool based on swimming-pool blues.",
+      "picture": "pool",
+      "photo": "",
+      "link": ""
+    },
+    {
+      "title": "Plaster",
+      "status": "Idea",
+      "year": "2026",
+      "description": "A quiet notes app with nothing in it but paper and shadow.",
+      "picture": "wall",
+      "photo": "",
+      "link": ""
+    },
+    {
+      "title": "Dunes",
+      "status": "Shipped",
+      "year": "2025",
+      "description": "A one-page site that slowly changes colour with the time of day.",
+      "picture": "dune",
+      "photo": "",
+      "link": ""
+    },
+    {
+      "title": "Blue Hour",
+      "status": "Idea",
+      "year": "2025",
+      "description": "A playlist generator for the twenty minutes after sunset.",
+      "picture": "dusk",
+      "photo": "",
+      "link": ""
+    }
+  ]
+}

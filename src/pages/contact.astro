@@ -1,10 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import site from '../data/site.json';
-const S = site.site;
+import PageHead from '../components/PageHead.astro';
+import { site as S, services } from '../lib/content';
+// The form sends messages once the API is set up (services.json); until then it asks people to email.
+const live = Boolean(services.apiUrl);
+const captcha = live && Boolean(services.turnstileSiteKey);
 ---
 <Layout title="Contact" current="contact">
-  <div class="g phead"><h1 class="disp">Contact</h1><div class="split"><span class="lab soft">連絡</span><span></span></div></div>
+  <PageHead title="Contact" jp="連絡" />
   <div class="g sec split">
     <div>
       <span class="lab">Write to me</span>
@@ -15,25 +18,55 @@ const S = site.site;
         <li><a href={`mailto:${S.email}`}><span>Email</span><span class="arrow">→</span></a></li>
       </ul>
     </div>
-    <form id="form" novalidate data-email={S.email}>
-      <label for="f-name"><span class="lab">Name</span><input id="f-name" autocomplete="name" required /></label>
-      <label for="f-email"><span class="lab">Email</span><input id="f-email" type="email" autocomplete="email" required /></label>
-      <label for="f-msg"><span class="lab">Message</span><textarea id="f-msg" required></textarea></label>
+    <form id="form" novalidate data-email={S.email} data-api={live ? services.apiUrl.replace(/\/$/, '') : ''}>
+      <label for="f-name"><span class="lab">Name</span><input id="f-name" name="name" autocomplete="name" maxlength="200" required /></label>
+      <label for="f-email"><span class="lab">Email</span><input id="f-email" name="email" type="email" autocomplete="email" maxlength="320" required /></label>
+      <label for="f-msg"><span class="lab">Message</span><textarea id="f-msg" name="message" maxlength="5000" required></textarea></label>
+      <div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off" /></label></div>
+      {captcha && <div class="cf-turnstile" data-sitekey={services.turnstileSiteKey} data-theme="light" data-size="flexible"></div>}
       <button class="btn lab" type="submit">Send</button>
-      <p class="msg" id="formmsg" hidden></p>
+      <p class="msg" id="formmsg" role="status" hidden></p>
     </form>
   </div>
+  {captcha && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
 </Layout>
 
 <script>
-  // The form isn't connected to an inbox yet: it asks people to email instead.
   const form = document.getElementById('form') as HTMLFormElement;
   const msg = document.getElementById('formmsg')!;
-  form.addEventListener('submit', (e) => {
+  const btn = form.querySelector('button[type=submit]') as HTMLButtonElement;
+  const api = form.dataset.api;
+  const say = (t: string) => { msg.hidden = false; msg.textContent = t; };
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    msg.hidden = false;
-    msg.textContent = form.checkValidity()
-      ? `Thank you. This form isn't connected to an inbox yet, so please email ${form.dataset.email} directly for now.`
-      : 'Please add your name, a valid email and a message.';
+    if (!form.checkValidity()) return say('Please add your name, a valid email and a message.');
+    if (!api) return say(`Thank you. This form isn't connected to an inbox yet, so please email ${form.dataset.email} directly for now.`);
+
+    const data = new FormData(form);
+    btn.disabled = true;
+    say('Sending…');
+    try {
+      const res = await fetch(`${api}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.get('name'),
+          email: data.get('email'),
+          message: data.get('message'),
+          website: data.get('website'),
+          turnstile: data.get('cf-turnstile-response'),
+        }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || 'Sending failed.');
+      form.reset();
+      say('Thank you, your message is on its way. I’ll write back soon.');
+    } catch (err) {
+      say(`${(err as Error).message} You can also email ${form.dataset.email}.`);
+      (window as any).turnstile?.reset();
+    } finally {
+      btn.disabled = false;
+    }
   });
 </script>

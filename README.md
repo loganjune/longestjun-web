@@ -22,6 +22,16 @@ Then open http://localhost:4321/. The page updates as soon as you save a file. P
 
 To publish, commit and push to `main` (for example with GitHub Desktop). Hostinger is linked to this repo: it builds the site (`npm run build`, from the repo root, output `dist`) and puts it live on longestjune.com a minute or two later. You can follow the build under the website's deployments in Hostinger's hPanel. If a change doesn't show up, clear the website's cache in hPanel.
 
+## Editing on the web (no code)
+
+Go to https://longestjune.com/admin and sign in with GitHub. You can write notes, add projects, upload photos to the gallery and change any text on the site. Each save goes to this repo on GitHub, and the live site updates a minute or two later. Photos are shrunk and converted to WebP automatically when you upload them.
+
+- Contact-form messages and content backups: https://longestjune.com/admin/messages
+- To let someone else edit: on github.com open this repo → **Settings → Collaborators → Add people**. They then sign in to `/admin` with their own GitHub account. Remove them the same way.
+- Every change is a commit, so anything can be undone from the repo's history on GitHub.
+
+One-time setup of the sign-in, contact form and database: [docs/admin-setup.md](docs/admin-setup.md).
+
 ## Adding a note
 
 Create a new file in `src/content/notes/`, for example `first-swim.md`:
@@ -47,16 +57,17 @@ lists, quotes and headings all work.
 
 ## Editing everything else
 
-`src/data/site.json` holds the rest of the content:
+Everything else lives in `src/data/`, one file per part of the site (you can also edit these in the web editor at `/admin`):
 
-- `site`: tagline over the video, the Hello line, location, email and GitHub link.
-- `projects`: `title`, `status` (`Building`, `Shipped` or `Idea`, which drive the filters), `year`, `description`, `picture` and an optional `link`. The first three are featured on the homepage.
-- `now`: the "Currently" list on the About page.
-- `gallery`, `shop`, `resume`: one entry per item.
+- `site.json`: tagline over the video, the Hello line, location, email, GitHub link, and the About page text.
+- `projects.json`: `title`, `status` (`Building`, `Shipped` or `Idea`, which drive the filters), `year`, `description`, `picture`, an optional `photo` and an optional `link`. The first three are featured on the homepage.
+- `now.json`: the "Currently" list on the About page.
+- `gallery.json`, `shop.json`, `resume.json`: one entry per item.
+- `services.json`: addresses of the contact-form API and editor sign-in helper, and the spam-check site key (all public, no secrets).
 
-`picture` can be a built-in drawing (`sea`, `room`, `pool`, `wall`, `dune`, `dusk`), or your own image: put the file in `public/images/` and use `"images/your-file.jpg"`.
+`picture` is a built-in drawing (`sea`, `room`, `pool`, `wall`, `dune`, `dusk`). To use your own image instead, set `photo` to an image under `public/images/`, for example `"/images/your-file.jpg"`.
 
-Keep the quotes and commas in `site.json` exactly as they are. If the build fails after an edit, paste the file into https://jsonlint.com to find the mistake.
+Keep the quotes and commas in these files exactly as they are. If the build fails after an edit, paste the file into https://jsonlint.com to find the mistake.
 
 ## Where things live
 

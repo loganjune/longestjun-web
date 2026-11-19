@@ -63,7 +63,7 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 .rows a:hover .lab{opacity:.55}
 .rows .r{grid-template-columns:8em minmax(0,1fr) auto}
 .arrow{font-family:Jost,sans-serif;font-size:15px}
-.ruled{border-top:1px solid var(--rule);padding-top:14px}
+.links{display:flex;flex-wrap:wrap;gap:8px 24px}
 /* featured slider */
 .feat{height:min(92svh,860px);min-height:480px}
 .feat h2{position:absolute;left:0;right:0;top:-.08em;color:#fff;font-size:clamp(40px,11vw,210px);text-align:center;white-space:nowrap;overflow:hidden}
@@ -103,6 +103,7 @@ textarea{min-height:120px;resize:vertical}
 .btn{justify-self:start;min-height:48px;padding:0 26px;border:1px solid var(--ink)}
 .btn:hover{background:var(--ink);color:var(--bg)}
 .msg{font-size:17px;background:var(--blue);padding:12px 14px}
+.hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
 /* footer */
 footer{border-top:1px solid var(--rule);padding-top:56px;padding-bottom:28px;margin-top:clamp(56px,8vw,120px)}
 footer .big{font-size:clamp(36px,10vw,180px);white-space:nowrap;margin-top:56px;overflow:hidden}

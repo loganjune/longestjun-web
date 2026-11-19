@@ -1,23 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Pic from '../components/Pic.astro';
-import site from '../data/site.json';
+import PageHead from '../components/PageHead.astro';
+import { projects, pic } from '../lib/content';
 
 const STATUSES = ['All', 'Building', 'Shipped', 'Idea'];
 ---
 <Layout title="Projects" current="projects">
-  <div class="g phead"><h1 class="disp">Projects</h1>
-    <div class="split"><span class="lab soft">制作</span>
-      <div class="filters lab" id="filters" role="group" aria-label="Filter by status">
-        {STATUSES.map((s) => <button type="button" data-s={s} aria-pressed={s === 'All' ? 'true' : 'false'}>{s}</button>)}
-      </div>
+  <PageHead title="Projects" jp="制作">
+    <div class="filters lab" id="filters" role="group" aria-label="Filter by status">
+      {STATUSES.map((s) => <button type="button" data-s={s} aria-pressed={s === 'All' ? 'true' : 'false'}>{s}</button>)}
     </div>
-  </div>
+  </PageHead>
   <div class="g sec">
     <div class="cards" id="projgrid">
-      {site.projects.map((p) => (
+      {projects.map((p) => (
         <article class="card" data-status={p.status}>
-          <div class="ph fill"><Pic picture={p.picture} alt="" /></div>
+          <div class="ph fill"><Pic picture={pic(p)} alt="" /></div>
           <div class="cap">
             <div>
               <span class="lab soft">{p.status} · {p.year}</span>
