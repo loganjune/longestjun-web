@@ -111,8 +111,11 @@ async function contact(request, env, ctx, origin) {
   }
 
   if (env.TURNSTILE_SECRET) {
-    const ok = await turnstileOk(body.turnstile, request.headers.get('CF-Connecting-IP'), env.TURNSTILE_SECRET);
-    if (!ok) return json({ error: 'The spam check didn’t pass. Please reload the page and try again.' }, 400);
+    const check = await turnstileCheck(body.turnstile, request.headers.get('CF-Connecting-IP'), env.TURNSTILE_SECRET);
+    if (!check.ok) {
+      console.warn('turnstile failed', check.codes);
+      return json({ error: `The spam check didn’t pass (${check.codes.join(', ') || 'no reason given'}). Please reload the page and try again.` }, 400);
+    }
   } else if (env.ALLOW_NO_CAPTCHA !== '1') {
     return json({ error: 'The contact form isn’t fully set up yet. Please email instead.' }, 503);
   }
@@ -122,15 +125,16 @@ async function contact(request, env, ctx, origin) {
   return json({ ok: true });
 }
 
-async function turnstileOk(token, ip, secret) {
-  if (!token) return false;
+/** Asks Cloudflare whether the spam-check token from the page is genuine. Codes explain a failure. */
+async function turnstileCheck(token, ip, secret) {
+  if (!token) return { ok: false, codes: ['missing-input-response'] };
   const form = new FormData();
-  form.append('secret', secret);
+  form.append('secret', secret.trim());
   form.append('response', String(token));
   if (ip) form.append('remoteip', ip);
   const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: form });
   const data = await res.json().catch(() => ({}));
-  return data.success === true;
+  return { ok: data.success === true, codes: data['error-codes'] || [`http-${res.status}`] };
 }
 
 async function sendAlert(env, { name, email, message }) {
