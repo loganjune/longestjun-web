@@ -3,6 +3,9 @@ title: "marina del rey, summer 2026"
 location: "marina del rey, california"
 date: 2026-11-18
 description: "when i run out of inspiration or need a place to come think, this is where i come."
+tags: [
+  "Travel"
+]
 photos: [
   {"photo":"/images/albums/2026-11-photo-853-singular-display-fullpicture-4p59.webp","caption":"inspiration"},
   {"photo":"/images/albums/2026-11-photo-595-singular-display-fullpicture-m0s0.webp","caption":"starting walk"},
