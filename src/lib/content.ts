@@ -11,6 +11,8 @@ import resumeFile from '../data/resume.json';
 export const projects = projectsFile.projects;
 export const now = nowFile.now;
 export const gallery = galleryFile.gallery;
+/** Album ids (file names in src/content/albums/) in the order they appear on the Gallery page. */
+export const galleryAlbumOrder: string[] = galleryFile.albums ?? [];
 export const shop = shopFile.shop;
 export const resume = resumeFile.resume;
 

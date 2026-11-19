@@ -10,11 +10,11 @@ import { url } from '../lib/url';
   </PageHead>
   <div class="g sec res">
     {resume.map((r) => (
-      <div class="split" style="margin-bottom:48px">
+      <div class="facts">
         <span class="lab">{r.section}</span>
         <ul class="rows">
           {r.items.map((it) => (
-            <li><div class="r"><span class="lab soft">{it.years || ' '}</span><div><h3>{it.title}</h3><span class="soft" style="font-size:17px">{it.details}</span></div></div></li>
+            <li class="split"><span class="lab soft">{it.years || ' '}</span><div><h3>{it.title}</h3><span class="soft" style="font-size:16px">{it.details}</span></div></li>
           ))}
         </ul>
       </div>

@@ -1,19 +1,29 @@
 ---
-// The web editor (Sveltia CMS). Sign in, edit, and every save is committed to GitHub;
-// Hostinger then rebuilds the live site. Its settings come from ./config.yml.ts.
+// The longest june editor. Everything on this page is built by src/admin/app.ts after sign-in.
+import '../../styles/global.css';
+import '../../admin/admin.css';
+import { services } from '../../lib/content';
 import { url } from '../../lib/url';
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Editor · longest june</title>
   <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
-  <link rel="cms-config-url" type="application/yaml" href={url('admin/config.yml')} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&family=Jost:wght@400;500&family=Shippori+Mincho:wght@500&display=swap" rel="stylesheet" />
 </head>
-<body>
-  <script is:inline src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+<body class="ed-page">
+  <div id="ed" data-auth={services.authUrl} data-api={services.apiUrl} data-site={url('')}>
+    <p class="soft ed-loading">Opening the editor…</p>
+  </div>
+  <noscript><p class="g">The editor needs JavaScript turned on.</p></noscript>
+  <script>
+    import '../../admin/app.ts';
+  </script>
 </body>
 </html>

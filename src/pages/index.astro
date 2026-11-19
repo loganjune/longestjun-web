@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Pic from '../components/Pic.astro';
+import Daylight from '../components/react/Daylight';
 import { site as S, projects, pic } from '../lib/content';
 import { url, PAGES, formatDate } from '../lib/url';
 import { getNotes } from '../lib/notes';
@@ -27,10 +28,14 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
 
   <div class="g split" style="padding-bottom:clamp(48px,6vw,96px)">
     <span class="lab">Location</span>
+    <div>
     <p class="statement" style="font-size:clamp(22px,2vw,28px);display:flex;align-items:center;gap:.4em">
       <svg width="0.9em" height="0.9em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M12 21.5s-7-6.1-7-11.8A7 7 0 0 1 19 9.7c0 5.7-7 11.8-7 11.8z"/><circle cx="12" cy="9.7" r="2.6"/></svg>
       <span>{S.location}</span>
     </p>
+    <!-- Marina del Rey's position, for today's sunrise and sunset. -->
+    <Daylight client:only="react" lat={33.98} lon={-118.45} timeZone="America/Los_Angeles" />
+    </div>
   </div>
 
   <div class="g split" style="padding-bottom:clamp(56px,8vw,120px)">
@@ -51,11 +56,11 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
     </div>
   )}
 
-  <div class="g sec split">
+  <div class="g sec facts">
     <span class="lab">Recent notes</span>
     <ul class="rows">
       {notes.map((n) => (
-        <li><a href={url(`notes/${n.id}`)} class="r" style="grid-template-columns:8em minmax(0,1fr) auto"><span class="lab soft">{formatDate(n.data.date)}</span><span>{n.data.title}</span><span class="arrow">→</span></a></li>
+        <li><a href={url(`notes/${n.id}`)} class="split"><span class="lab soft">{formatDate(n.data.date)}</span><span class="fact-main"><span>{n.data.title}</span><span class="arrow">→</span></span></a></li>
       ))}
     </ul>
   </div>

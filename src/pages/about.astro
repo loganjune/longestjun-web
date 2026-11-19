@@ -14,11 +14,20 @@ const A = site.about;
       {A.paragraphs.map((p) => <p>{p}</p>)}
     </div>
   </div>
+  <!-- Label + rows: each row's own label sits in the left column, under the section label. -->
+  {A.what?.length > 0 && (
+    <div class="g sec facts">
+      <span class="lab">What</span>
+      <ul class="rows">
+        {A.what.map((w) => <li class="split"><span class="lab soft">{w.label}</span><span>{w.text}</span></li>)}
+      </ul>
+    </div>
+  )}
   <div class="plate fill" style="height:min(70svh,640px)"><Pic picture={pic(A)} /></div>
-  <div class="g sec split">
+  <div class="g sec facts">
     <span class="lab">Currently</span>
     <ul class="rows">
-      {now.map((n) => <li><div class="r" style="grid-template-columns:8em minmax(0,1fr)"><span class="lab soft">{n.label}</span><span>{n.text}</span></div></li>)}
+      {now.map((n) => <li class="split"><span class="lab soft">{n.label}</span><span>{n.text}</span></li>)}
     </ul>
   </div>
 </Layout>

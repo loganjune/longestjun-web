@@ -1,47 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Pic from '../components/Pic.astro';
 import PageHead from '../components/PageHead.astro';
+import ProjectsFilter from '../components/react/ProjectsFilter';
 import { projects, pic } from '../lib/content';
-
-const STATUSES = ['All', 'Building', 'Shipped', 'Idea'];
 ---
 <Layout title="Projects" current="projects">
-  <PageHead title="Projects" jp="制作">
-    <div class="filters lab" id="filters" role="group" aria-label="Filter by status">
-      {STATUSES.map((s) => <button type="button" data-s={s} aria-pressed={s === 'All' ? 'true' : 'false'}>{s}</button>)}
-    </div>
-  </PageHead>
+  <PageHead title="Projects" jp="制作" />
   <div class="g sec">
-    <div class="cards" id="projgrid">
-      {projects.map((p) => (
-        <article class="card" data-status={p.status}>
-          <div class="ph fill"><Pic picture={pic(p)} alt="" /></div>
-          <div class="cap">
-            <div>
-              <span class="lab soft">{p.status} · {p.year}</span>
-              <h3>{p.link ? <a href={p.link}>{p.title}</a> : p.title}</h3>
-              <p>{p.description}</p>
-            </div>
-            <span class="arrow">→</span>
-          </div>
-        </article>
-      ))}
-    </div>
-    <p class="sample" id="projempty" hidden>Nothing here yet.</p>
+    <ProjectsFilter client:load projects={projects.map((p) => ({ ...p, picture: pic(p) }))} />
   </div>
 </Layout>
-
-<script>
-  const filters = document.getElementById('filters')!;
-  const cards = document.querySelectorAll<HTMLElement>('#projgrid .card');
-  filters.addEventListener('click', (e) => {
-    const b = (e.target as HTMLElement).closest('button');
-    if (!b) return;
-    const s = b.dataset.s;
-    let shown = 0;
-    cards.forEach((c) => { const on = s === 'All' || c.dataset.status === s; c.hidden = !on; if (on) shown++; });
-    filters.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    document.getElementById('projempty')!.hidden = shown > 0;
-  });
-</script>

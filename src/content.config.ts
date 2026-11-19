@@ -14,4 +14,19 @@ const notes = defineCollection({
   }),
 });
 
-export const collections = { notes };
+// Each gallery album is a Markdown file in src/content/albums/. The file name becomes its URL:
+// src/content/albums/lisbon.md  ->  /gallery/lisbon
+// The details and photo list sit at the top; the optional travel story is the text below.
+const albums = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/albums' }),
+  schema: z.object({
+    title: z.string(),
+    location: z.string().optional(),
+    description: z.string().optional(),
+    cover: z.string().optional(),
+    draft: z.boolean().default(false),
+    photos: z.array(z.object({ photo: z.string(), caption: z.string().default('') })).default([]),
+  }),
+});
+
+export const collections = { notes, albums };

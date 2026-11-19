@@ -3,9 +3,12 @@ export const SCENES = ['sea', 'room', 'pool', 'wall', 'dune', 'dusk'];
 
 let uid = 0;
 
-/** Draws one of the built-in summer "photographs" as an SVG string. */
-export function scene(k: string): string {
-  const u = 's' + (uid++); let d = '', b = '';
+/**
+ * Draws one of the built-in summer "photographs" as an SVG string.
+ * `idPrefix` keeps the drawing's internal ids unique on the page; React components pass their own.
+ */
+export function scene(k: string, idPrefix?: string): string {
+  const u = idPrefix ?? 's' + (uid++); let d = '', b = '';
   if(k==='sea'){
     d=`<linearGradient id="${u}a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8db6d6"/><stop offset=".62" stop-color="#e6c7cf"/><stop offset=".66" stop-color="#f4d8d6"/></linearGradient><linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fbfd6"/><stop offset="1" stop-color="#4d7593"/></linearGradient><radialGradient id="${u}c"><stop offset="0" stop-color="#fff4ea"/><stop offset=".25" stop-color="#fbe3dc" stop-opacity=".9"/><stop offset="1" stop-color="#f4d0d4" stop-opacity="0"/></radialGradient>`;
     b=`<rect width="1200" height="800" fill="url(#${u}a)"/><circle cx="600" cy="500" r="260" fill="url(#${u}c)"/><circle cx="600" cy="500" r="46" fill="#fff6ee"/><rect y="528" width="1200" height="272" fill="url(#${u}b)"/>`;
