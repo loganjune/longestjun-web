@@ -21,7 +21,7 @@ const albumCards = albums.map((a) => ({
   count: a.data.photos.length,
   tags: a.data.tags,
 }));
-// The featured album sits large at the top; the rest are listed under the photos.
+// The featured album sits large at the top; then the other albums, then the single photos.
 const featured = albumCards.find((a) => a.id === galleryFeatured);
 const others = albumCards.filter((a) => a !== featured);
 ---
@@ -39,14 +39,15 @@ const others = albumCards.filter((a) => a !== featured);
       </a>
     </div>
   )}
-  {gallery.length > 0 && (
-    <div class="g sec">
-      <PhotoGallery client:visible label="Gallery" photos={gallery.map((g) => ({ picture: pic(g), caption: g.caption }))} />
-    </div>
-  )}
   {others.length > 0 && (
     <div class="g sec albums">
       <AlbumsIndex client:load albums={others} tags={tagsInUse(others)} />
+    </div>
+  )}
+  {gallery.length > 0 && (
+    <div class="g sec">
+      <div class="split proj-bar"><span class="lab">Selected photos</span></div>
+      <PhotoGallery client:visible label="Gallery" photos={gallery.map((g) => ({ picture: pic(g), caption: g.caption }))} />
     </div>
   )}
 </Layout>
