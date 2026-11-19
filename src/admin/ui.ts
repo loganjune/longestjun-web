@@ -141,6 +141,20 @@ export function confirmBox(title: string, text: string, yes = 'Yes', danger = fa
   ]);
 }
 
+/** A question with several answers. Resolves with the chosen answer's value, or null if cancelled. The last choice is the main button. */
+export function chooseBox<T extends string>(title: string, text: string, choices: { label: string; value: T }[]): Promise<T | null> {
+  return dialog<T | null>(null, (close) => [
+    el('h2', { cls: 'ed-dialog-title' }, title),
+    el('p', {}, text),
+    el(
+      'div',
+      { cls: 'ed-actions' },
+      button('Cancel', () => close(null), 'ed-btn quiet'),
+      ...choices.map((c, i) => button(c.label, () => close(c.value), i === choices.length - 1 ? 'ed-btn solid' : 'ed-btn')),
+    ),
+  ]);
+}
+
 /** A styled one-line question. Resolves with the answer, or null if cancelled. */
 export function askBox(title: string, label: string, value = '', placeholder = ''): Promise<string | null> {
   const input = el('input', { value, placeholder, 'aria-label': label });

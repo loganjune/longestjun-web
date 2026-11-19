@@ -16,6 +16,9 @@ const { album } = Astro.props;
 const { title, location, date, description, photos, draft } = album.data;
 const { Content } = await render(album);
 const hasStory = Boolean(album.body?.trim());
+// The cover already shows large at the top, so the photo book below leaves it out.
+const cover = albumCover(album.data);
+const rest = photos.filter((p) => p.photo !== cover);
 ---
 <Layout title={title} description={description || location} current="gallery">
   <StoryHead
@@ -24,7 +27,7 @@ const hasStory = Boolean(album.body?.trim());
     location={location}
     date={date}
     description={description}
-    picture={albumCover(album.data)}
+    picture={cover}
     back={{ href: 'gallery', label: 'Gallery' }}
     draft={draft}
   />
@@ -33,10 +36,10 @@ const hasStory = Boolean(album.body?.trim());
       <article class="note-body"><Content /></article>
     </div>
   )}
-  {photos.length > 0 && (
+  {rest.length > 0 && (
     <section class="g sec album-photos">
       <p class="lab story-section">{photos.length} {photos.length === 1 ? 'photo' : 'photos'}</p>
-      <PhotoGallery client:visible layout="book" label={title} photos={photos.map((p) => ({ picture: p.photo, caption: p.caption }))} />
+      <PhotoGallery client:visible layout="book" label={title} photos={rest.map((p) => ({ picture: p.photo, caption: p.caption }))} />
     </section>
   )}
 </Layout>

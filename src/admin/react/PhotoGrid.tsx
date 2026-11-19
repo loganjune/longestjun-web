@@ -6,7 +6,7 @@ import { sortable, moveItem } from '../sortable';
 import { addPhoto, addPhotoEdited, editPhoto, type Ctx } from '../forms';
 import { showImage, PHOTO_ACCEPT, isPhotoFile } from '../images';
 import { scene } from '../../lib/scene';
-import { toast, confirmBox } from '../ui';
+import { toast, confirmBox, chooseBox } from '../ui';
 import type { Photo } from '../albums';
 import { Icon } from './Icon';
 
@@ -73,7 +73,17 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
     if (!p?.photo) return;
     try {
       const path = await editPhoto(p.photo, folder, ctx);
-      if (path) onChange(latest.current.map((x, j) => (j === i ? { ...x, photo: path } : x)));
+      if (!path) return;
+      const how = await chooseBox('Save the edited photo', 'Replace the original, or keep it and add the edited version as a new photo next to it?', [
+        { label: 'Save as new photo', value: 'new' },
+        { label: 'Replace photo', value: 'replace' },
+      ]);
+      if (!how) {
+        ctx.uploads.delete(`public${path}`);
+        return;
+      }
+      const list = latest.current;
+      onChange(how === 'replace' ? list.map((x, j) => (j === i ? { ...x, photo: path } : x)) : [...list.slice(0, i + 1), { ...list[i], photo: path }, ...list.slice(i + 1)]);
     } catch (e) {
       toast((e as Error).message, 'error');
     }
