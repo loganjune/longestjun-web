@@ -7,9 +7,10 @@ tags: [
   "Travel"
 ]
 photos: [
-  {"photo":"/images/albums/2026-11-photo-853-singular-display-fullpicture-qcvv.webp","caption":"inspiration"},
+  {"photo":"/images/albums/2026-11-photo-853-singular-display-fullpicture-yam3.webp","caption":"inspiration"},
   {"photo":"/images/albums/2026-11-photo-595-singular-display-fullpicture-m0s0.webp","caption":"starting walk"},
-  {"photo":"/images/albums/2026-11-photo-865-singular-display-fullpicture-82ip.webp","caption":"friends"}
+  {"photo":"/images/albums/2026-11-photo-865-singular-display-fullpicture-82ip.webp","caption":"friends"},
+  {"photo":"/images/albums/2026-11-photo-853-singular-display-fullpicture-1tt5.webp","caption":"bw"}
 ]
 ---
 
