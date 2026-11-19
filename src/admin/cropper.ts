@@ -1,10 +1,10 @@
-// The photo editor: crop, rotate, straighten, and change the look (filters, black and white,
-// brightness, contrast, saturation, warmth, fade). Opens as a dialog and resolves with the edited
+// The photo editor: crop, rotate, straighten, change the look (filters, black and white,
+// brightness, contrast, saturation, warmth, tint, fade, vignette) and add a frame. Opens as a dialog and resolves with the edited
 // photo, or null if cancelled ('as-is' if "Use as is" was offered and chosen).
 // Drag inside the box to move it, drag a corner to resize it; arrow keys nudge the box.
 import { el, button, icon } from './ui';
 import { decodePhoto, fitCanvas, encodeCanvas, type Prepared } from './images';
-import { applyLook, FILTERS, PLAIN, type Look } from './look';
+import { applyLook, addFrame, frameSize, FILTERS, FRAMES, PLAIN, type Look } from './look';
 
 type Box = { x: number; y: number; w: number; h: number }; // fractions (0–1) of the picture
 const SHAPES: { label: string; ratio: number | null | 'original' }[] = [
@@ -31,16 +31,21 @@ export async function cropPhoto(source: Blob, opts: { asIs?: boolean } = {}): Pr
   let work = original; // full size, turned and straightened (not shown)
   let base = original; // a small copy of `work` for the preview
   let look: Look = { ...PLAIN };
+  let border = FRAMES[0];
   let box: Box = { x: 0, y: 0, w: 1, h: 1 };
   let ratio: number | null = null; // width / height of the box in pixels, or free
 
   return new Promise((resolve) => {
     const dlg = el('dialog', { cls: 'ed-dialog crop', 'aria-label': 'Edit photo' });
-    const stage = el('div', { cls: 'crop-stage' });
+    const stage = el('div', { cls: 'crop-stage' }); // holds the picture, with room around it for a frame
+    const pic = el('div', { cls: 'crop-pic' });
     const view = el('canvas'); // what you see: the small copy with the look applied
     const frame = el('div', { cls: 'crop-frame', tabindex: '0', 'aria-label': 'Crop area. Drag to move, or use the arrow keys.' });
+    const matte = el('span', { cls: 'crop-matte', hidden: true }); // the frame's preview, around the crop box
+    frame.append(matte);
     for (const c of ['nw', 'ne', 'sw', 'se']) frame.append(el('span', { cls: `crop-handle ${c}`, 'data-corner': c }));
-    stage.append(view, frame);
+    pic.append(view, frame);
+    stage.append(pic);
 
     /** Redraws the preview from the small copy, with the current look. */
     let queued = 0;
@@ -71,6 +76,14 @@ export async function cropPhoto(source: Blob, opts: { asIs?: boolean } = {}): Pr
 
     const draw = () => {
       Object.assign(frame.style, { left: `${box.x * 100}%`, top: `${box.y * 100}%`, width: `${box.w * 100}%`, height: `${box.h * 100}%` });
+      matte.hidden = !border.side;
+      stage.style.padding = '';
+      if (!border.side) return;
+      // The frame goes outside the crop box, as it will on the saved photo; the stage makes room for it.
+      const r = pic.getBoundingClientRect();
+      const { side, bottom } = frameSize(border, box.w * r.width, box.h * r.height);
+      stage.style.padding = `${side}px ${side}px ${bottom}px`;
+      Object.assign(matte.style, { inset: `-${side}px -${side}px -${bottom}px`, borderWidth: `${side}px ${side}px ${bottom}px`, borderColor: border.color });
     };
 
     /** The largest centred box with the chosen shape. */
@@ -128,7 +141,7 @@ export async function cropPhoto(source: Blob, opts: { asIs?: boolean } = {}): Pr
     });
     frame.addEventListener('pointermove', (e) => {
       if (!drag) return;
-      const r = stage.getBoundingClientRect();
+      const r = pic.getBoundingClientRect();
       const dx = (e.clientX - drag.startX) / r.width;
       const dy = (e.clientY - drag.startY) / r.height;
       const s = drag.start;
@@ -193,7 +206,7 @@ export async function cropPhoto(source: Blob, opts: { asIs?: boolean } = {}): Pr
       out.height = sh;
       out.getContext('2d')!.drawImage(work, sx, sy, sw, sh, 0, 0, sw, sh);
       applyLook(out, look); // the full-size photo gets the same look as the preview
-      close(await encodeCanvas(out));
+      close(await encodeCanvas(addFrame(out, border)));
     }, 'ed-btn solid');
 
     // ---- the look: filters, black and white, sliders ----
@@ -229,6 +242,16 @@ export async function cropPhoto(source: Blob, opts: { asIs?: boolean } = {}): Pr
       });
       return el('label', { cls: 'crop-straighten' }, el('span', { cls: 'lab' }, label), input, out);
     };
+    const frameButtons = FRAMES.map((f, i) => {
+      const b = button(f.name, () => setFrame(i), 'crop-shape');
+      b.setAttribute('aria-pressed', String(i === 0));
+      return b;
+    });
+    const setFrame = (i: number) => {
+      border = FRAMES[i];
+      frameButtons.forEach((x, j) => x.setAttribute('aria-pressed', String(j === i)));
+      draw();
+    };
     bw.addEventListener('change', () => {
       look.bw = bw.checked;
       filterButtons.forEach((x) => x.setAttribute('aria-pressed', 'false'));
@@ -260,7 +283,11 @@ export async function cropPhoto(source: Blob, opts: { asIs?: boolean } = {}): Pr
           slider('contrast', 'Contrast', -100),
           slider('saturation', 'Saturation', -100),
           slider('warmth', 'Warmth', -100),
+          slider('tint', 'Tint', -100),
           slider('fade', 'Fade', 0),
+          slider('vignette', 'Vignette', 0),
+          el('p', { cls: 'lab crop-heading' }, 'Frame'),
+          el('div', { cls: 'crop-shapes', role: 'group', 'aria-label': 'Frame' }, ...frameButtons),
         ),
       ),
       el(
@@ -275,6 +302,7 @@ export async function cropPhoto(source: Blob, opts: { asIs?: boolean } = {}): Pr
           ratio = null;
           shapeButtons.forEach((x, i) => x.setAttribute('aria-pressed', String(i === 0)));
           setLook(PLAIN, filterButtons[0]);
+          setFrame(0);
           rotate(-1);
         }, 'ed-btn quiet'),
         opts.asIs ? button('Use as is', () => close('as-is'), 'ed-btn quiet') : null,
