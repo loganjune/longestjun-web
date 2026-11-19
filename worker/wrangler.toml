@@ -22,7 +22,7 @@ MAIL_FROM = "longest june <onboarding@resend.dev>"
 [[d1_databases]]
 binding = "DB"
 database_name = "longestjune"
-database_id = "REPLACE_WITH_DATABASE_ID"
+database_id = "2b88aaee-b38b-4d0a-91ab-3cc3f46a62a3"
 
 # Check for newly published content every hour and back it up.
 [triggers]
