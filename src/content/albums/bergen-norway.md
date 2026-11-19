@@ -6,12 +6,13 @@ description: "this is where i would live if i could. find solace in the fjords."
 tags: [
   "Travel"
 ]
+cover: "/images/albums/2026-11-img-8771-b7ik.webp"
 photos: [
-  {"photo":"/images/albums/2026-11-img-8705-qhh9.webp","caption":"the houses"},
-  {"photo":"/images/albums/2026-11-img-8703-cjlj.webp","caption":"the sun"},
-  {"photo":"/images/albums/2026-11-img-9002-e3ye.webp","caption":"the fjord"},
-  {"photo":"/images/albums/2026-11-img-8782-sqev.webp","caption":"the sunset"},
-  {"photo":"/images/albums/2026-11-img-8771-rt38.webp","caption":""}
+  {"photo":"/images/albums/2026-11-img-8705-7kc6.webp","caption":"the houses"},
+  {"photo":"/images/albums/2026-11-img-8703-agnu.webp","caption":"the sun"},
+  {"photo":"/images/albums/2026-11-img-9002-ovop.webp","caption":"the fjord"},
+  {"photo":"/images/albums/2026-11-img-8782-ob68.webp","caption":"the sunset"},
+  {"photo":"/images/albums/2026-11-img-8771-b7ik.webp","caption":"the town"}
 ]
 ---
 
