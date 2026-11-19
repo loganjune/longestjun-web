@@ -29,14 +29,13 @@ const others = albumCards.filter((a) => a !== featured);
   <PageHead title="Gallery" jp="写真"><span class="soft">Images collected along the way.</span></PageHead>
   {featured && (
     <div class="g sec">
-      <a class="story-lead fill" href={featured.href}>
-        <Pic picture={featured.cover} alt="" />
-        <span class="story-lead-text">
-          <span class="lab">{['Featured album', featured.location, featured.date].filter(Boolean).join(' · ')}</span>
-          <span class="story-lead-title">{featured.title}</span>
-          {featured.description && <span class="story-lead-desc">{featured.description}</span>}
-          <span class="lab">{featured.count} {featured.count === 1 ? 'photo' : 'photos'} →</span>
-        </span>
+      <a class="album featured-album" href={featured.href}>
+        <div class="ph fill">
+          <Pic picture={featured.cover} alt="" />
+          <span class="lab featured-tag">Featured album</span>
+          <span class="album-name disp" aria-hidden="true">{featured.title}</span>
+        </div>
+        <h3 class="album-title">{featured.title}</h3>
       </a>
     </div>
   )}

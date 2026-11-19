@@ -1,9 +1,9 @@
 // Builds editing forms from a short description of each section (see sections.ts).
 // Forms change the data object in place and call `onChange` so the screen knows there are unsaved edits.
-import { el, icon, iconButton, button, busy, toast, plural, confirmBox } from './ui';
+import { el, icon, iconButton, button, toast, plural, confirmBox } from './ui';
 import { preparePhoto, photoName, showImage, rememberPreview, photoBlob, PHOTO_ACCEPT, type Prepared } from './images';
 import { cropPhoto } from './cropper';
-import type { Change } from './github';
+import { GitHubError, type Change } from './github';
 import { scene, SCENES } from '../lib/scene';
 import { sortable, moveItem } from './sortable';
 
@@ -32,31 +32,85 @@ export type Uploads = Map<string, Uint8Array>;
 export type Ctx = { uploads: Uploads; onChange: () => void };
 
 /**
- * The Save bar at the bottom of an editing screen, and its "unsaved changes" tracking.
+ * The bar at the bottom of an editing screen. Changes save themselves (to drafts) a couple of seconds
+ * after the last edit; the bar shows "Saving…", then "All changes saved".
  * `save` gets the photos waiting to be uploaded, and should commit them with the screen's own file.
- * `extra` is shown before the Save button (e.g. Delete).
+ * `extra` is shown on the right (e.g. Delete). `ready` can hold saving back, returning a short
+ * reason instead of true (e.g. a new item needs its title first).
  */
-export function saveBar(initial: string, save: (photos: Change[]) => Promise<void>, extra: HTMLElement | null = null) {
+export function saveBar(
+  initial: string,
+  save: (photos: Change[]) => Promise<void>,
+  extra: HTMLElement | null = null,
+  opts: { ready?: () => true | string } = {},
+) {
   const uploads: Uploads = new Map();
   let dirty = false;
-  const status = el('span', { cls: 'ed-status soft' }, initial);
+  let running: Promise<void> | null = null;
+  let timer = 0;
+  const status = el('span', { cls: 'ed-status soft', role: 'status' }, initial);
+  const footer = el('div', { cls: 'ed-savebar' }, status, el('span', { cls: 'ed-actions' }, extra));
+
+  const schedule = (ms: number) => {
+    clearTimeout(timer);
+    timer = window.setTimeout(() => void run(), ms);
+  };
+
+  const run = async (): Promise<void> => {
+    if (running) {
+      await running; // one save at a time; changes made meanwhile get their own save next
+      return dirty ? run() : undefined;
+    }
+    if (!dirty) return;
+    const ready = opts.ready?.() ?? true;
+    if (ready !== true) {
+      status.textContent = ready;
+      return;
+    }
+    const batch = [...uploads];
+    dirty = false;
+    status.textContent = 'Saving…';
+    running = (async () => {
+      try {
+        await save(batch.map(([path, bytes]) => ({ path, bytes })));
+        for (const [path] of batch) uploads.delete(path);
+        status.textContent = dirty ? 'Unsaved changes' : 'All changes saved';
+      } catch (e) {
+        dirty = true;
+        status.textContent = (e as Error).message;
+        // Network trouble: try again shortly. (Problems like a missing title wait for the next edit.)
+        if (e instanceof GitHubError || e instanceof TypeError) schedule(15000);
+      }
+    })();
+    await running;
+    running = null;
+    if (dirty && !opts.ready || dirty && opts.ready?.() === true) schedule(2000);
+  };
+
+  // Leaving a field (e.g. the title of a new item) is a good moment to save.
+  const onFocusOut = () => {
+    if (!footer.isConnected) return document.removeEventListener('focusout', onFocusOut);
+    if (dirty) schedule(400);
+  };
+  document.addEventListener('focusout', onFocusOut);
+
   const ctx: Ctx = {
     uploads,
     onChange: () => {
       dirty = true;
       status.textContent = 'Unsaved changes';
+      schedule(2000);
     },
   };
-  const btn = button('Save', () =>
-    busy(btn, 'Saving…', async () => {
-      await save([...uploads].map(([path, bytes]) => ({ path, bytes })));
-      uploads.clear();
-      dirty = false;
-      status.textContent = 'Saved. Publish to make it live.';
-      toast('Saved to drafts.');
-    }),
-  'ed-btn solid');
-  return { ctx, isDirty: () => dirty, footer: el('div', { cls: 'ed-savebar' }, status, el('span', { cls: 'ed-actions' }, extra, btn)) };
+
+  /** Saves anything waiting right now. Resolves true when everything is saved. */
+  const flush = async () => {
+    clearTimeout(timer);
+    await run();
+    return !dirty;
+  };
+
+  return { ctx, isDirty: () => dirty || !!running, flush, footer };
 }
 
 export function renderFields(fields: Field[], data: any, ctx: Ctx): HTMLElement {
@@ -172,10 +226,20 @@ export async function addPhoto(file: File, folder: string, ctx: Ctx): Promise<st
   return keepPhoto(await preparePhoto(file), file.name, folder, ctx);
 }
 
-/** Opens the crop-and-rotate tool for a photo already in the editor; returns the new photo's path, or null. */
+/**
+ * Adds one photo after opening the photo editor on it (crop, rotate, look). "Use as is" keeps it
+ * unchanged; Cancel resolves null and the photo isn't added.
+ */
+export async function addPhotoEdited(file: File, folder: string, ctx: Ctx): Promise<string | null> {
+  const edited = await cropPhoto(file, { asIs: true });
+  if (edited === null) return null;
+  return keepPhoto(edited === 'as-is' ? await preparePhoto(file) : edited, file.name, folder, ctx);
+}
+
+/** Opens the photo editor (crop, rotate, look) for a photo already in the editor; returns the new photo's path, or null. */
 export async function editPhoto(sitePath: string, folder: string, ctx: Ctx): Promise<string | null> {
   const edited = await cropPhoto(await photoBlob(sitePath));
-  if (!edited) return null;
+  if (!edited || edited === 'as-is') return null;
   const base = (sitePath.split('/').pop() || 'photo').replace(/\.[^.]+$/, '').replace(/^\d{4}-\d{2}-/, '').replace(/-[a-z0-9]{4}$/, '');
   return keepPhoto(edited, base, folder, ctx);
 }
@@ -282,7 +346,7 @@ function renderList(f: Extract<Field, { kind: 'list' }>, data: any, ctx: Ctx): H
               open.delete(item);
               draw();
               ctx.onChange();
-              toast(`${f.itemName} removed. Save to keep this change.`);
+              toast(`${f.itemName} removed.`);
             }),
           ),
         );
@@ -324,7 +388,7 @@ function renderList(f: Extract<Field, { kind: 'list' }>, data: any, ctx: Ctx): H
           }
           draw();
           ctx.onChange();
-          toast(`${plural(files.length, 'photo')} added. Add captions, then Save.`);
+          toast(`${plural(files.length, 'photo')} added.`);
         }),
       )
     : null;

@@ -258,7 +258,14 @@ body.has-publish .ed-savebar { bottom: 72px; }
 @media (max-width: 820px) { .ed-split-2 { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- crop and rotate (cropper.ts) ---------- */
-.ed-dialog.crop { max-width: min(980px, calc(100vw - 24px)); padding: 22px; }
+.ed-dialog.crop { max-width: min(1180px, calc(100vw - 24px)); padding: 22px; }
+.crop-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; margin-bottom: 14px; }
+.crop-panel { display: grid; gap: 6px; max-height: min(66vh, 680px); overflow-y: auto; padding-right: 4px; }
+.crop-heading { margin: 4px 0 2px; }
+.crop-heading:not(:first-child) { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule); }
+.crop-filters { margin-bottom: 4px; }
+.crop-bw { margin: 4px 0; }
+@media (max-width: 820px) { .crop-layout { grid-template-columns: minmax(0, 1fr); } .crop-panel { max-height: none; } .crop-stage canvas { max-height: 42vh; } }
 .crop-stage { position: relative; width: fit-content; max-width: 100%; margin: 6px auto 16px; line-height: 0; user-select: none; touch-action: none; }
 .crop-stage canvas { display: block; max-width: 100%; max-height: min(62vh, 640px); width: auto; height: auto; }
 .crop-frame { position: absolute; border: 1.5px solid #fff; box-shadow: 0 0 0 9999px rgba(243, 230, 220, .72); cursor: move; outline: none; }
@@ -275,7 +282,7 @@ body.has-publish .ed-savebar { bottom: 72px; }
 .crop-shape { min-height: 36px; font: 500 12px/1 Jost, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--soft); border-bottom: 1px solid transparent; }
 .crop-shape[aria-pressed="true"] { color: var(--ink); border-bottom-color: currentColor; }
 .crop-turns { display: flex; gap: 8px; }
-.crop-straighten { display: grid; grid-template-columns: auto minmax(0, 1fr) 4.5em; align-items: center; gap: 14px; margin-bottom: 10px; }
+.crop-straighten { display: grid; grid-template-columns: 6.5em minmax(0, 1fr) 3em; align-items: center; gap: 12px; margin-bottom: 4px; }
 .crop-straighten input { width: 100%; accent-color: var(--ink); }
 .crop-angle { font: 500 13px/1 Jost, system-ui, sans-serif; letter-spacing: .06em; text-align: right; font-variant-numeric: tabular-nums; }
 

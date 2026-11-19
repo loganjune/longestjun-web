@@ -40,6 +40,7 @@ const PATHS: Record<string, string> = {
   back: '<path d="M15 6l-6 6 6 6"/>',
   external: '<path d="M14 5h5v5M19 5l-8 8M17 14v5H5V7h5"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  adjust: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
   crop: '<path d="M6 2.5V16a2 2 0 0 0 2 2h13.5M2.5 6H16a2 2 0 0 1 2 2v13.5"/>',
   move: '<path d="M4 7h16v13H4zM9 7V4h6v3M9.5 13.5h5M12 11v5"/>',
   grip: '<circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/>',

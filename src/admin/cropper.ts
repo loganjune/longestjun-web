@@ -1,8 +1,10 @@
-// Crop and rotate a photo before it's saved. Opens as a dialog; resolves with the edited photo,
-// or null if cancelled. Drag inside the box to move it, drag a corner to resize it, pick a shape
-// to fix its proportions, rotate in quarter turns, and straighten a tilted photo by up to 15°. Arrow keys nudge the box when it's focused.
+// The photo editor: crop, rotate, straighten, and change the look (filters, black and white,
+// brightness, contrast, saturation, warmth, fade). Opens as a dialog and resolves with the edited
+// photo, or null if cancelled ('as-is' if "Use as is" was offered and chosen).
+// Drag inside the box to move it, drag a corner to resize it; arrow keys nudge the box.
 import { el, button, icon } from './ui';
 import { decodePhoto, fitCanvas, encodeCanvas, type Prepared } from './images';
+import { applyLook, FILTERS, PLAIN, type Look } from './look';
 
 type Box = { x: number; y: number; w: number; h: number }; // fractions (0–1) of the picture
 const SHAPES: { label: string; ratio: number | null | 'original' }[] = [
@@ -16,7 +18,9 @@ const SHAPES: { label: string; ratio: number | null | 'original' }[] = [
 ];
 const MIN = 0.05; // smallest box, as a fraction of the picture
 
-export async function cropPhoto(source: Blob): Promise<Prepared | null> {
+const PREVIEW = 1000; // the on-screen preview is at most this size, so sliders feel instant
+
+export async function cropPhoto(source: Blob, opts: { asIs?: boolean } = {}): Promise<Prepared | null | 'as-is'> {
   const bitmap = await decodePhoto(source);
   // Work on a copy no larger than the final size, so rotating and cropping stay quick.
   const original = fitCanvas(bitmap, bitmap.width, bitmap.height);
@@ -24,18 +28,42 @@ export async function cropPhoto(source: Blob): Promise<Prepared | null> {
 
   let turns = 0; // quarter turns clockwise
   let angle = 0; // fine straightening, in degrees (−15 to 15)
-  let work = original;
+  let work = original; // full size, turned and straightened (not shown)
+  let base = original; // a small copy of `work` for the preview
+  let look: Look = { ...PLAIN };
   let box: Box = { x: 0, y: 0, w: 1, h: 1 };
   let ratio: number | null = null; // width / height of the box in pixels, or free
 
   return new Promise((resolve) => {
-    const dlg = el('dialog', { cls: 'ed-dialog crop', 'aria-label': 'Crop and rotate' });
+    const dlg = el('dialog', { cls: 'ed-dialog crop', 'aria-label': 'Edit photo' });
     const stage = el('div', { cls: 'crop-stage' });
+    const view = el('canvas'); // what you see: the small copy with the look applied
     const frame = el('div', { cls: 'crop-frame', tabindex: '0', 'aria-label': 'Crop area. Drag to move, or use the arrow keys.' });
     for (const c of ['nw', 'ne', 'sw', 'se']) frame.append(el('span', { cls: `crop-handle ${c}`, 'data-corner': c }));
-    stage.append(work, frame);
+    stage.append(view, frame);
 
-    const close = (v: Prepared | null) => {
+    /** Redraws the preview from the small copy, with the current look. */
+    let queued = 0;
+    const paint = () => {
+      cancelAnimationFrame(queued);
+      queued = requestAnimationFrame(() => {
+        view.width = base.width;
+        view.height = base.height;
+        view.getContext('2d')!.drawImage(base, 0, 0);
+        applyLook(view, look);
+      });
+    };
+    const rebase = () => {
+      const scale = Math.min(1, PREVIEW / Math.max(work.width, work.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(work.width * scale);
+      c.height = Math.round(work.height * scale);
+      c.getContext('2d')!.drawImage(work, 0, 0, c.width, c.height);
+      base = c;
+      paint();
+    };
+
+    const close = (v: Prepared | null | 'as-is') => {
       dlg.close();
       dlg.remove();
       resolve(v);
@@ -70,8 +98,8 @@ export async function cropPhoto(source: Blob): Promise<Prepared | null> {
       x.rotate((turns * Math.PI) / 2 + (angle * Math.PI) / 180);
       x.scale(zoom, zoom);
       x.drawImage(original, -original.width / 2, -original.height / 2);
-      work.replaceWith(c);
       work = c;
+      rebase();
     };
 
     const rotate = (by: number) => {
@@ -164,8 +192,48 @@ export async function cropPhoto(source: Blob): Promise<Prepared | null> {
       out.width = sw;
       out.height = sh;
       out.getContext('2d')!.drawImage(work, sx, sy, sw, sh, 0, 0, sw, sh);
+      applyLook(out, look); // the full-size photo gets the same look as the preview
       close(await encodeCanvas(out));
     }, 'ed-btn solid');
+
+    // ---- the look: filters, black and white, sliders ----
+    const sliders: Record<string, HTMLInputElement> = {};
+    const bw = el('input', { type: 'checkbox' });
+    const filterButtons = FILTERS.map((f) => {
+      const b = button(f.name, () => setLook(f.look, b), 'crop-shape');
+      b.setAttribute('aria-pressed', String(f.name === 'Original'));
+      return b;
+    });
+    const syncControls = () => {
+      for (const [k, input] of Object.entries(sliders)) input.value = String(look[k as keyof Look]);
+      bw.checked = look.bw;
+      for (const [k, out] of Object.entries(readouts)) out.textContent = signed(look[k as keyof Look] as number);
+    };
+    const setLook = (next: Look, pressed: HTMLButtonElement | null) => {
+      look = { ...next };
+      filterButtons.forEach((x) => x.setAttribute('aria-pressed', String(x === pressed)));
+      syncControls();
+      paint();
+    };
+    const readouts: Record<string, HTMLElement> = {};
+    const slider = (key: keyof Look, label: string, min: number) => {
+      const input = el('input', { type: 'range', min: String(min), max: '100', step: '1', value: '0', 'aria-label': label });
+      const out = el('span', { cls: 'crop-angle' }, '0');
+      sliders[key] = input;
+      readouts[key] = out;
+      input.addEventListener('input', () => {
+        (look as Record<string, number | boolean>)[key] = Number(input.value);
+        out.textContent = signed(Number(input.value));
+        filterButtons.forEach((x) => x.setAttribute('aria-pressed', 'false'));
+        paint();
+      });
+      return el('label', { cls: 'crop-straighten' }, el('span', { cls: 'lab' }, label), input, out);
+    };
+    bw.addEventListener('change', () => {
+      look.bw = bw.checked;
+      filterButtons.forEach((x) => x.setAttribute('aria-pressed', 'false'));
+      paint();
+    });
 
     const turn = (dir: number, label: string, name: string) => {
       const b = el('button', { type: 'button', cls: 'ed-icon', 'aria-label': label, title: label }, icon(name));
@@ -174,10 +242,27 @@ export async function cropPhoto(source: Blob): Promise<Prepared | null> {
     };
 
     dlg.append(
-      el('h2', { cls: 'ed-dialog-title' }, 'Crop and rotate'),
-      stage,
-      el('label', { cls: 'crop-straighten' }, el('span', { cls: 'lab' }, 'Straighten'), straighten, angleLabel),
-      el('div', { cls: 'crop-tools' }, el('div', { cls: 'crop-shapes', role: 'group', 'aria-label': 'Shape' }, ...shapeButtons), el('div', { cls: 'crop-turns' }, turn(-1, 'Rotate left', 'undo'), turn(1, 'Rotate right', 'redo'))),
+      el('h2', { cls: 'ed-dialog-title' }, 'Edit photo'),
+      el(
+        'div',
+        { cls: 'crop-layout' },
+        stage,
+        el(
+          'div',
+          { cls: 'crop-panel' },
+          el('p', { cls: 'lab crop-heading' }, 'Crop'),
+          el('label', { cls: 'crop-straighten' }, el('span', { cls: 'lab' }, 'Straighten'), straighten, angleLabel),
+          el('div', { cls: 'crop-tools' }, el('div', { cls: 'crop-shapes', role: 'group', 'aria-label': 'Shape' }, ...shapeButtons), el('div', { cls: 'crop-turns' }, turn(-1, 'Rotate left', 'undo'), turn(1, 'Rotate right', 'redo'))),
+          el('p', { cls: 'lab crop-heading' }, 'Look'),
+          el('div', { cls: 'crop-shapes crop-filters', role: 'group', 'aria-label': 'Filters' }, ...filterButtons),
+          el('label', { cls: 'ed-check crop-bw' }, bw, el('span', { cls: 'lab' }, 'Black and white')),
+          slider('brightness', 'Brightness', -100),
+          slider('contrast', 'Contrast', -100),
+          slider('saturation', 'Saturation', -100),
+          slider('warmth', 'Warmth', -100),
+          slider('fade', 'Fade', 0),
+        ),
+      ),
       el(
         'div',
         { cls: 'ed-actions' },
@@ -189,18 +274,23 @@ export async function cropPhoto(source: Blob): Promise<Prepared | null> {
           turns = 1;
           ratio = null;
           shapeButtons.forEach((x, i) => x.setAttribute('aria-pressed', String(i === 0)));
+          setLook(PLAIN, filterButtons[0]);
           rotate(-1);
         }, 'ed-btn quiet'),
+        opts.asIs ? button('Use as is', () => close('as-is'), 'ed-btn quiet') : null,
         apply,
       ),
     );
     dlg.addEventListener('cancel', () => close(null));
     document.body.append(dlg);
     dlg.showModal();
+    rebase();
     draw();
     frame.focus();
   });
 }
+
+const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.min(hi, Math.max(lo, v));

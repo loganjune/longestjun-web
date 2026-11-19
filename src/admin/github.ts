@@ -177,11 +177,21 @@ export class GitHub {
   }
 
   /** Makes the drafts live. */
-  async publish(): Promise<void> {
+  /**
+   * Makes the drafts live as one tidy update: a single commit on main with everything saved since
+   * the last publish (autosave makes many small draft saves; they don't clutter the live history).
+   */
+  async publish(message = 'Publish from the editor'): Promise<void> {
     await this.syncDrafts();
-    const draftSha = await this.headSha(DRAFTS);
-    if (!draftSha) return;
-    await this.setRef(MAIN, draftSha); // a fast-forward: main simply catches up with drafts
+    const [mainSha, draftSha] = await Promise.all([this.headSha(MAIN), this.headSha(DRAFTS)]);
+    if (!mainSha || !draftSha || mainSha === draftSha) return;
+    const drafts = await this.api(`/repos/${REPO}/git/commits/${draftSha}`);
+    const commit = await this.api(`/repos/${REPO}/git/commits`, {
+      method: 'POST',
+      body: JSON.stringify({ message: `${message} (editor)`, tree: drafts.tree.sha, parents: [mainSha] }),
+    });
+    await this.setRef(MAIN, commit.sha); // main moves forward by one commit
+    await this.setRef(DRAFTS, commit.sha, true); // drafts starts again from what's live
   }
 
   /** Throws away everything not yet published. */

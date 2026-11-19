@@ -86,23 +86,31 @@ export async function noteEditor(gh: GitHub, id: string | null, go: (hash: strin
         'ed-btn danger quiet',
       );
 
+  // A new story becomes an ordinary one after its first save (no page reload, so typing isn't interrupted).
+  let fresh = isNew;
+  let currentId = id;
   const bar = saveBar(
-    isNew ? 'Not saved yet' : 'Saved',
+    isNew ? 'Not saved yet' : 'All changes saved',
     async (photos) => {
       const m: NoteMeta = { title: title.value.trim(), date: date.value, description: desc.value.trim(), tags, cover: cover.photo || (cover.picture !== 'dusk' ? cover.picture : ''), draft: draft.checked };
       if (!m.title) throw new Error('Please give the story a title.');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(m.date)) throw new Error('Please pick a date.');
-      let target = path;
-      let newId = id;
-      if (isNew) {
-        newId = uniqueId(m.title, new Set((await gh.listDir(DIR)).map((f) => f.name.replace(/\.mdx?$/, ''))));
-        target = `${DIR}/${newId}.md`;
+      if (fresh) {
+        currentId = uniqueId(m.title, new Set((await gh.listDir(DIR)).map((f) => f.name.replace(/\.mdx?$/, ''))));
+        path = `${DIR}/${currentId}.md`;
       }
-      await gh.commit([{ path: target, text: serializeFrontmatter(m, doc.getMarkdown()) }, ...photos], `${isNew ? 'Add' : 'Update'} note “${m.title}”`);
+      await gh.commit([{ path, text: serializeFrontmatter(m, doc.getMarkdown()) }, ...photos], `${fresh ? 'Add' : 'Update'} note “${m.title}”`);
+      if (fresh) {
+        fresh = false;
+        history.replaceState(null, '', `#/notes/${encodeURIComponent(currentId!)}`);
+      }
       onSaved();
-      if (isNew) go(`#/notes/${encodeURIComponent(newId!)}`);
     },
     del,
+    {
+      // A new story waits for its title (the title also becomes its web address).
+      ready: () => (!fresh ? true : !title.value.trim() ? 'Give it a title to start saving.' : document.activeElement === title ? 'Saves when you leave the title.' : true),
+    },
   );
   const changed = bar.ctx.onChange;
 
@@ -137,6 +145,7 @@ export async function noteEditor(gh: GitHub, id: string | null, go: (hash: strin
     jp: '記録',
     back: { href: '#/notes', label: 'All stories' },
     isDirty: bar.isDirty,
+    flush: bar.flush,
     destroy: () => {
       doc.destroy();
       tagsRoot.unmount();

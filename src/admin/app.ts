@@ -19,6 +19,8 @@ export type View = {
   footer?: HTMLElement;
   back?: { href: string; label: string };
   isDirty?: () => boolean;
+  /** Saves anything waiting; resolves true when everything is saved. */
+  flush?: () => Promise<boolean>;
   destroy?: () => void;
 };
 
@@ -154,11 +156,13 @@ async function refreshPending() {
 const onOverview = () => (location.hash || '#/') === '#/';
 
 async function publish(btn: HTMLButtonElement) {
-  if (current?.isDirty?.() && !(await confirmBox('Unsaved changes', 'This screen has changes that aren’t saved yet. They won’t be published. Publish anyway?', 'Publish anyway'))) return;
+  // Save anything still waiting first, so it's included.
+  if (current?.isDirty?.() && !(await (current.flush?.() ?? Promise.resolve(false))) && !(await confirmBox('Some changes aren’t saved', 'Some changes on this screen couldn’t be saved, so they won’t be published. Publish the rest?', 'Publish anyway'))) return;
   const list = pending.files.map((f) => `• ${describePath(f.path)}`).join('\n');
   if (!(await confirmBox('Publish to the live site?', `${list}\n\nThe site updates in a minute or two.`, 'Publish'))) return;
   await busy(btn, 'Publishing…', async () => {
-    await gh.publish();
+    const names = pending.files.map((f) => describePath(f.path));
+    await gh.publish(`Publish: ${names.slice(0, 3).join(', ')}${names.length > 3 ? ` and ${names.length - 3} more` : ''}`);
     toast('Published. The live site updates in a minute or two.');
     await refreshPending();
     if (onOverview()) route(true);
@@ -211,7 +215,7 @@ async function sectionView(s: Section): Promise<View> {
   const text = await gh.readText(s.file);
   if (text === null) throw new Error(`${s.file} is missing.`);
   const data = JSON.parse(text);
-  const bar = saveBar('Saved', async (photos) => {
+  const bar = saveBar('All changes saved', async (photos) => {
     await gh.commit([{ path: s.file, text: JSON.stringify(data, null, 2) + '\n' }, ...photos], `Update ${s.title.toLowerCase()}`);
     refreshPending();
   });
@@ -222,6 +226,7 @@ async function sectionView(s: Section): Promise<View> {
     body: renderFields(s.fields, data, bar.ctx),
     footer: bar.footer,
     isDirty: bar.isDirty,
+    flush: bar.flush,
   };
 }
 
@@ -236,8 +241,9 @@ function goTo(hash: string) {
 
 async function route(force = false) {
   const hash = location.hash || '#/';
-  if (!force && current?.isDirty?.() && hash !== lastHash) {
-    if (!(await confirmBox('Leave without saving?', 'This screen has changes that aren’t saved.', 'Leave', true))) {
+  // Leaving a screen saves anything still waiting; only if that fails is there a question.
+  if (!force && hash !== lastHash && current?.isDirty?.() && !(await (current.flush?.() ?? Promise.resolve(false)))) {
+    if (!(await confirmBox('Leave without saving?', 'Some changes on this screen couldn’t be saved. Leave anyway?', 'Leave', true))) {
       history.replaceState(null, '', lastHash);
       return;
     }

@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
 import { sortable, moveItem } from '../sortable';
-import { addPhoto, editPhoto, type Ctx } from '../forms';
+import { addPhoto, addPhotoEdited, editPhoto, type Ctx } from '../forms';
 import { showImage, PHOTO_ACCEPT, isPhotoFile } from '../images';
 import { scene } from '../../lib/scene';
 import { toast, confirmBox } from '../ui';
@@ -88,7 +88,9 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
     const forAlbum: string[] = [];
     for (const file of images) {
       try {
-        const path = await addPhoto(file, dest ? 'albums' : folder, ctx);
+        // A single photo opens the photo editor first; several at once are added straight away.
+        const path = images.length === 1 ? await addPhotoEdited(file, dest ? 'albums' : folder, ctx) : await addPhoto(file, dest ? 'albums' : folder, ctx);
+        if (!path) continue;
         if (dest) forAlbum.push(path);
         else onChange([...latest.current, make(path)]);
       } catch (e) {
@@ -136,7 +138,7 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
             }}
           />
         </label>
-        <span className="ed-hint">{busy ? `Preparing ${busy} photo${busy > 1 ? 's' : ''}…` : 'or drop photos here. Drag the grip to reorder.'}</span>
+        <span className="ed-hint">{busy ? `Preparing ${busy} photo${busy > 1 ? 's' : ''}…` : 'or drop photos here. Drag the grip to reorder; the sliders button edits a photo.'}</span>
       </div>
       {photos.length === 0 ? (
         <p className="pg-empty soft">{emptyText}</p>
@@ -173,8 +175,8 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
                     onChange={(e) => set(i, { caption: e.target.value })}
                   />
                   {p.photo && (
-                    <button type="button" className="ed-icon" aria-label={`Crop or rotate photo ${i + 1}`} title="Crop or rotate" onClick={() => edit(i)}>
-                      <Icon name="crop" />
+                    <button type="button" className="ed-icon" aria-label={`Edit photo ${i + 1}: crop, rotate, filters`} title="Edit photo" onClick={() => edit(i)}>
+                      <Icon name="adjust" />
                     </button>
                   )}
                   {onMoveOut && p.photo && (

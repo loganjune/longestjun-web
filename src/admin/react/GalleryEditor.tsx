@@ -48,7 +48,7 @@ export default function GalleryEditor({ gallery: initial, albums: initialAlbums,
         { ...cur, gallery: cur.gallery.filter((_, j) => j !== i) },
         list.map((a) => (a.id === id ? updated : a)),
       );
-      toast(`Moved to “${album.title || id}”. Save to keep it.`);
+      toast(`Moved to “${album.title || id}”.`);
     },
     [emit],
   );
@@ -62,7 +62,7 @@ export default function GalleryEditor({ gallery: initial, albums: initialAlbums,
       const updated: Album = { ...album, photos: [...album.photos, ...paths.map((photo) => ({ photo, caption: '' }))] };
       changed.current.set(id, updated);
       emit(cur, list.map((a) => (a.id === id ? updated : a)));
-      toast(`Added ${paths.length} photo${paths.length === 1 ? '' : 's'} to “${album.title || id}”. Save to keep them.`);
+      toast(`Added ${paths.length} photo${paths.length === 1 ? '' : 's'} to “${album.title || id}”.`);
     },
     [emit],
   );

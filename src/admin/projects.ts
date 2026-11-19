@@ -83,7 +83,7 @@ export async function projectsView(gh: GitHub, onSaved: () => void): Promise<Vie
   const order = [...known, ...projects.map((p) => p.id).filter((id) => !known.includes(id)).sort()];
 
   let latest = order;
-  const bar = saveBar('Saved', async (photos) => {
+  const bar = saveBar('All changes saved', async (photos) => {
     await gh.commit([orderFile(latest), ...photos], 'Reorder projects');
     onSaved();
   });
@@ -102,6 +102,7 @@ export async function projectsView(gh: GitHub, onSaved: () => void): Promise<Vie
     body: host,
     footer: bar.footer,
     isDirty: bar.isDirty,
+    flush: bar.flush,
     destroy: unmount,
   };
 }
@@ -110,7 +111,7 @@ export async function projectsView(gh: GitHub, onSaved: () => void): Promise<Vie
 
 export async function projectView(gh: GitHub, id: string | null, go: (hash: string) => void, onSaved: () => void): Promise<View> {
   const isNew = id === null;
-  const path = isNew ? '' : `${DIR}/${id}.md`;
+  let path = isNew ? '' : `${DIR}/${id}.md`;
   let project: Project = {
     id: id || '',
     title: '',
@@ -151,13 +152,20 @@ export async function projectView(gh: GitHub, id: string | null, go: (hash: stri
         'ed-btn danger quiet',
       );
 
+  // A new project becomes an ordinary one after its first save (no reload, so typing isn't interrupted).
+  let fresh = isNew;
+  let currentId = id;
   const bar = saveBar(
-    isNew ? 'Not saved yet' : 'Saved',
+    isNew ? 'Not saved yet' : 'All changes saved',
     async (photos) => {
       const p = latest;
       const title = p.title.trim();
       if (!title) throw new Error('Please give the project a title.');
-      const newId = isNew ? uniqueId(title, new Set((await gh.listDir(DIR)).map((f) => f.name.replace(/\.md$/, '')))) : id;
+      if (fresh) {
+        currentId = uniqueId(title, new Set((await gh.listDir(DIR)).map((f) => f.name.replace(/\.md$/, ''))));
+        path = `${DIR}/${currentId}.md`;
+      }
+      const newId = currentId;
       const text = serializeFrontmatter(
         {
           title,
@@ -174,13 +182,20 @@ export async function projectView(gh: GitHub, id: string | null, go: (hash: stri
         },
         getWriteUp(),
       );
-      const changes: Change[] = [{ path: `${DIR}/${newId}.md`, text }, ...photos];
-      if (isNew) changes.push(orderFile([...(await readOrder(gh)), newId!]));
-      await gh.commit(changes, `${isNew ? 'Add' : 'Update'} project “${title}”`);
+      const changes: Change[] = [{ path, text }, ...photos];
+      if (fresh) changes.push(orderFile([...(await readOrder(gh)), newId!]));
+      await gh.commit(changes, `${fresh ? 'Add' : 'Update'} project “${title}”`);
+      if (fresh) {
+        fresh = false;
+        history.replaceState(null, '', `#/projects/${encodeURIComponent(newId!)}`);
+      }
       onSaved();
-      if (isNew) go(`#/projects/${encodeURIComponent(newId!)}`);
     },
     del,
+    {
+      // A new project waits for its title (the title also becomes its web address).
+      ready: () => (!fresh ? true : !latest.title.trim() ? 'Give the project a title to start saving.' : document.activeElement?.classList.contains('ed-title-input') ? 'Saves when you leave the title.' : true),
+    },
   );
 
   const { host, unmount } = mount(ProjectEditor, {
@@ -198,6 +213,7 @@ export async function projectView(gh: GitHub, id: string | null, go: (hash: stri
     jp: '制作',
     back: { href: '#/projects', label: 'All projects' },
     isDirty: bar.isDirty,
+    flush: bar.flush,
     destroy: unmount,
     body: host,
     footer: bar.footer,
