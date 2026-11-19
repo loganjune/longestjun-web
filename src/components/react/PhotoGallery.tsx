@@ -16,8 +16,9 @@ const PREV = icon(<path d="M15 6l-6 6 6 6" />);
 const NEXT = icon(<path d="M9 6l6 6-6 6" />);
 const CLOSE = icon(<path d="M6 6l12 12M18 6L6 18" />);
 
-// Photo-book rhythm: one wide, a pair, one set left, one set right, then repeat.
-const BOOK = ['wide', 'pair', 'pair', 'left', 'right'];
+// Photo-book rhythm: a pair, one set left, one set right, one wide, then repeat. It starts with a pair
+// because the page above already shows one big photo (the cover).
+const BOOK = ['pair', 'pair', 'left', 'right', 'wide'];
 
 type Props = { photos: Photo[]; label?: string; layout?: 'grid' | 'book' };
 
