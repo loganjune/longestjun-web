@@ -18,7 +18,7 @@
     "what": [
       {
         "label": "Built with",
-        "text": "Astro and TypeScript, with React for the interactive parts (the photo viewer, project filter and daylight times), and plain CSS."
+        "text": "Astro and TypeScript, with React for the interactive parts (the photo viewer, story and project filters, daylight times, and the editor’s photo screens), and plain CSS."
       },
       {
         "label": "Hosted on",
