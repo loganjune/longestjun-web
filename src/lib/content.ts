@@ -11,6 +11,8 @@ export const now = nowFile.now;
 export const gallery = galleryFile.gallery;
 /** Album ids (file names in src/content/albums/) in the order they appear on the Gallery page. */
 export const galleryAlbumOrder: string[] = galleryFile.albums ?? [];
+/** The album shown large at the top of the Gallery page ('' for none). */
+export const galleryFeatured: string = (galleryFile as { featured?: string }).featured ?? '';
 export const shop = shopFile.shop;
 export const resume = resumeFile.resume;
 

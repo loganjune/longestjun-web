@@ -14,14 +14,19 @@ type Options = {
   onMove: (from: number, to: number) => void;
   /** Grids reorder by left/right position as well as up/down. */
   grid?: boolean;
+  /** Elements elsewhere on the page an item can be dropped onto (e.g. album cards). */
+  dropTargets?: string;
+  /** Called instead of onMove when an item is dropped onto one of the drop targets. */
+  onDropTarget?: (from: number, target: HTMLElement) => void;
 };
 
-export function sortable({ container, items, handle, onMove, grid = false }: Options): () => void {
+export function sortable({ container, items, handle, onMove, grid = false, dropTargets, onDropTarget }: Options): () => void {
   let from = -1;
   let to = -1;
   let ghost: HTMLElement | null = null;
   let dragged: HTMLElement | null = null;
   let offset = { x: 0, y: 0 };
+  let into: HTMLElement | null = null; // a drop target under the pointer
 
   // Only the container's own items: lists inside lists (resume entries) sort separately.
   const list = () => [...container.querySelectorAll<HTMLElement>(`:scope > ${items}`)];
@@ -69,8 +74,17 @@ export function sortable({ container, items, handle, onMove, grid = false }: Opt
     // Scroll the page when dragging near the top or bottom edge.
     if (e.clientY < 70) scrollBy(0, -12);
     else if (e.clientY > innerHeight - 70) scrollBy(0, 12);
-    const t = targetAt(e.clientX, e.clientY);
     list().forEach((el) => el.classList.remove('drop-before', 'drop-after'));
+    // Over a drop target elsewhere (the ghost lets the pointer "see through" it)?
+    into?.classList.remove('drop-into');
+    into = dropTargets ? (document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>(dropTargets) ?? null) : null;
+    if (into && !container.contains(into)) {
+      into.classList.add('drop-into');
+      to = from;
+      return;
+    }
+    into = null;
+    const t = targetAt(e.clientX, e.clientY);
     if (!t || t.el === dragged) {
       to = t ? from : to;
       return;
@@ -87,7 +101,11 @@ export function sortable({ container, items, handle, onMove, grid = false }: Opt
     ghost = null;
     dragged = null;
     clearMarks();
-    if (from > -1 && to > -1 && to !== from) onMove(from, to);
+    if (into && onDropTarget && from > -1) {
+      into.classList.remove('drop-into');
+      onDropTarget(from, into);
+    } else if (from > -1 && to > -1 && to !== from) onMove(from, to);
+    into = null;
     from = to = -1;
   };
 

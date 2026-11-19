@@ -88,6 +88,7 @@ const config = {
         },
         text('description', 'Short description', { required: false, hint: 'Optional. Shown under the title in lists.' }),
         { name: 'cover', label: 'Cover', widget: 'image', required: false, hint: 'Optional. Shown on the Stories page and at the top of the note.' },
+        { name: 'tags', label: 'Tags', widget: 'list', required: false, hint: 'Filters on the Stories page, e.g. Build, Travel.' },
         {
           name: 'draft',
           label: 'Draft',
@@ -177,7 +178,7 @@ const config = {
           widget: 'list',
           required: false,
           hint: 'Set this in the main editor by dragging albums.',
-        }),
+        }, text('featured', 'Featured album (file name)', { required: false, hint: 'Set this in the main editor with the ★ on an album.' })),
         dataFile('now', 'Currently (About page)', {
           name: 'now',
           label: 'Currently',

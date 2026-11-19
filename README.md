@@ -24,7 +24,7 @@ To publish, commit and push to `main` (for example with GitHub Desktop). Hosting
 
 ## Editing on the web (no code)
 
-Go to https://longestjune.com/admin and sign in with GitHub. It works on a phone too. You can write notes, add projects (each with its own case-study page), make gallery albums (with a travel story), upload photos and change any text on the site. Drag the grip (⋮⋮) next to any photo or item to reorder it, or drop photos from your computer onto a photo grid.
+Go to https://longestjune.com/admin and sign in with GitHub. It works on a phone too. You can write notes, add projects (each with its own case-study page), make gallery albums (with a travel story), upload photos and change any text on the site. Drag the grip (⋮⋮) next to any photo or item to reorder it, or drop photos from your computer onto a photo grid. iPhone HEIC photos work, and every photo has a crop button for cropping, rotating and straightening. On the Gallery screen, new photos can go straight into an album, and single photos can be dragged onto an album to move them in. Tags on stories and albums become filters on the site, and the ★ on an album features it at the top of the Gallery.
 
 - **Save** stores your change on GitHub as a draft (on the `editor-drafts` branch). Nothing goes live yet, and drafts are safe even if you close the browser.
 - **Publish** (the bar at the bottom of the screen) makes all saved drafts live. The site updates a minute or two later.

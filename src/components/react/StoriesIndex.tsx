@@ -1,17 +1,15 @@
 // The Stories page: the newest story large at the top, the rest as cards, and a filter
-// (All / Notes / Travel).
+// (All, then the tags in use: Notes, Travel, Build…).
 import { useState } from 'react';
 import { Picture } from './Picture';
 
-type Story = { kind: 'Note' | 'Travel'; id: string; href: string; title: string; date: string; description: string; picture: string; location: string };
+type Story = { kind: 'Note' | 'Travel'; id: string; href: string; title: string; date: string; description: string; picture: string; location: string; tags: string[] };
 
-const FILTERS = ['All', 'Notes', 'Travel'] as const;
-
-export default function StoriesIndex({ stories }: { stories: Story[] }) {
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>('All');
-  const shown = stories.filter((s) => filter === 'All' || (filter === 'Notes' ? s.kind === 'Note' : s.kind === 'Travel'));
+export default function StoriesIndex({ stories, tags }: { stories: Story[]; tags: string[] }) {
+  const [filter, setFilter] = useState('All');
+  const shown = stories.filter((s) => filter === 'All' || s.tags.includes(filter));
   const [lead, ...rest] = shown;
-  const meta = (s: Story) => [s.kind === 'Travel' ? s.location || 'Travel' : 'Note', s.date].filter(Boolean).join(' · ');
+  const meta = (s: Story) => [s.tags.join(', '), s.location, s.date].filter(Boolean).join(' · ');
 
   return (
     <>
@@ -19,8 +17,8 @@ export default function StoriesIndex({ stories }: { stories: Story[] }) {
         <span className="lab soft" aria-live="polite">
           {shown.length} {shown.length === 1 ? 'story' : 'stories'}
         </span>
-        <div className="filters lab" role="group" aria-label="Show stories">
-          {FILTERS.map((f) => (
+        <div className="filters lab" role="group" aria-label="Show stories tagged">
+          {['All', ...tags].map((f) => (
             <button key={f} type="button" aria-pressed={f === filter} onClick={() => setFilter(f)}>
               {f}
             </button>

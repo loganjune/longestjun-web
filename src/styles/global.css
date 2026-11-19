@@ -179,6 +179,8 @@ footer a:hover{text-decoration:underline}
 @media(max-width:640px){.proj-bar .filters{justify-self:start}.viewer-nav{top:auto;bottom:18px;transform:none}}
 /* gallery captions: over the photo on hover (mouse), small underneath on touch screens */
 .photo{position:relative}
+/* each photo tile is only as tall as its own picture, so a hover caption sits on the picture, not below it */
+.cards .photo,.book .photo{align-self:start}
 .photo-cap{font:500 11px/1.4 Jost,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);padding-top:8px}
 @media (hover:hover) and (pointer:fine){
   .photo-cap{position:absolute;left:0;right:0;bottom:0;padding:12px 14px;color:var(--ink);background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease;pointer-events:none}

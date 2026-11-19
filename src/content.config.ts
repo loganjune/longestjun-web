@@ -12,6 +12,8 @@ const notes = defineCollection({
     description: z.string().optional(),
     /** Optional photo (or built-in drawing name) for the note's card on the Stories page. */
     cover: z.string().optional(),
+    /** Topics for filtering on the Stories page, e.g. ["Build", "Process"]. */
+    tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
   }),
 });
@@ -27,6 +29,8 @@ const albums = defineCollection({
     date: z.coerce.date().optional(),
     description: z.string().optional(),
     cover: z.string().optional(),
+    /** Topics for filtering on the Gallery and Stories pages, e.g. ["Travel", "Japan"]. */
+    tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
     photos: z.array(z.object({ photo: z.string(), caption: z.string().default('') })).default([]),
   }),

@@ -3,6 +3,7 @@ import { Thumb } from './PhotoGrid';
 import { Icon } from './Icon';
 import { addPhoto, type Ctx } from '../forms';
 import { toast } from '../ui';
+import { PHOTO_ACCEPT } from '../images';
 import { SCENES } from '../../lib/scene';
 
 type Props = { picture: string; photo: string; folder: string; ctx: Ctx; onChange: (v: { picture: string; photo: string }) => void };
@@ -18,7 +19,7 @@ export default function PictureField({ picture, photo, folder, ctx, onChange }: 
           <Icon name="photo" size={16} /> {photo ? 'Replace photo' : 'Upload photo'}
           <input
             type="file"
-            accept="image/*"
+            accept={PHOTO_ACCEPT}
             className="ed-file"
             onChange={async (e) => {
               const file = e.target.files?.[0];

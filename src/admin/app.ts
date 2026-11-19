@@ -34,7 +34,7 @@ let lastHash = location.hash;
 
 const NAV: { hash: string; label: string }[] = [
   { hash: '#/', label: 'Overview' },
-  { hash: '#/notes', label: 'Notes' },
+  { hash: '#/notes', label: 'Stories' },
   { hash: '#/projects', label: 'Projects' },
   { hash: '#/gallery', label: 'Gallery' },
   { hash: '#/site', label: 'Text & About' },
@@ -182,7 +182,7 @@ async function discardDrafts() {
 async function overview(): Promise<View> {
   const unread = api ? await api.unreadCount().catch(() => 0) : 0;
   const tiles = [
-    row(null, ['Write a note'], '#/notes/new'),
+    row(null, ['Write a story'], '#/notes/new'),
     row(null, ['Add photos to the gallery'], '#/gallery'),
     row(null, ['Edit projects'], '#/projects'),
     row(null, [unread ? `Read ${plural(unread, 'new message')}` : 'Messages'], '#/messages'),

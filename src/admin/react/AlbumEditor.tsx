@@ -2,10 +2,11 @@
 // travel story, written like a blog post with photos placed inside the text.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import PhotoGrid from './PhotoGrid';
+import TagsField, { ALBUM_TAGS } from './TagsField';
 import { richText } from '../richtext';
 import { addPhoto, type Ctx } from '../forms';
 import { el, button, toast } from '../ui';
-import { showImage } from '../images';
+import { showImage, PHOTO_ACCEPT } from '../images';
 import type { Album, Photo } from '../albums';
 
 type Props = { album: Album; ctx: Ctx; onChange: (a: Album) => void; registerStory: (get: () => string) => void };
@@ -63,6 +64,14 @@ export default function AlbumEditor({ album: initial, ctx, onChange, registerSto
         <span className="lab">Short description</span>
         <textarea rows={2} value={a.description} placeholder="A line or two, shown under the title and on the Gallery page." onChange={(e) => update({ description: e.target.value })} />
       </label>
+      <TagsField tags={a.tags} onChange={(tags) => update({ tags })} suggestions={ALBUM_TAGS} hint="Used to filter albums on the Gallery page. An album with a travel story also shows on Stories under these tags." />
+      <label className="ed-check feature">
+        <input type="checkbox" checked={a.featured} onChange={(e) => update({ featured: e.target.checked })} />
+        <span>
+          <span className="lab">Feature at the top of the Gallery</span>
+          <span className="ed-hint">Shown large above the other albums. Only one album is featured at a time, so this replaces the current one.</span>
+        </span>
+      </label>
 
       <section className="ed-field">
         <span className="lab">Photos</span>
@@ -96,7 +105,7 @@ function pickPhoto(photos: Photo[], ctx: Ctx): Promise<{ src: string; alt: strin
       dlg.remove();
       resolve(v);
     };
-    const input = el('input', { type: 'file', accept: 'image/*', cls: 'ed-file' });
+    const input = el('input', { type: 'file', accept: PHOTO_ACCEPT, cls: 'ed-file' });
     input.addEventListener('change', async () => {
       const file = input.files?.[0];
       if (!file) return;

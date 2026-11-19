@@ -16,6 +16,7 @@
     "@tiptap/pm": "3.32.2",
     "@tiptap/starter-kit": "3.32.2",
     "astro": "^7.0.0",
+    "heic-to": "1.6.7",
     "oxc-transform-react": "0.145.0",
     "react": "19.1.10",
     "react-dom": "19.1.10"

@@ -5,36 +5,63 @@ import type { GitHub } from './github';
 const MAX = 2400; // longest side, in pixels
 const QUALITY = 0.85;
 
-type Prepared = { bytes: Uint8Array; ext: 'webp' | 'jpg'; previewUrl: string };
+export type Prepared = { bytes: Uint8Array; ext: 'webp' | 'jpg'; previewUrl: string };
 
-/** Resizes a photo (keeping its rotation), strips camera data, and converts it to WebP (JPEG if WebP isn't available). */
-export async function preparePhoto(file: File): Promise<Prepared> {
-  if (!file.type.startsWith('image/')) throw new Error(`${file.name} isn’t a photo.`);
-  let bitmap: ImageBitmap;
+/** What the photo pickers accept: any image, plus iPhone HEIC files (which some browsers don't label as images). */
+export const PHOTO_ACCEPT = 'image/*,.heic,.heif';
+/** Is this file a photo we can use? */
+export const isPhotoFile = (f: File) => f.type.startsWith('image/') || /\.hei[cf]$/i.test(f.name);
+
+const isHeicFile = (f: Blob & { name?: string }) => /image\/hei[cf]/i.test(f.type) || /\.hei[cf]$/i.test(f.name || '');
+
+/**
+ * Opens a photo as pixels, turned the right way up. iPhone HEIC photos open directly in Safari;
+ * other browsers convert them with heic-to, which is only downloaded the first time it's needed.
+ */
+export async function decodePhoto(file: Blob & { name?: string }): Promise<ImageBitmap> {
+  const name = file.name || 'This photo';
+  if (!isHeicFile(file) && file.type && !file.type.startsWith('image/')) throw new Error(`${name} isn’t a photo.`);
   try {
-    bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    return await createImageBitmap(file, { imageOrientation: 'from-image' });
   } catch {
-    throw new Error(`Couldn’t open ${file.name}. Try a JPEG or PNG.`);
+    if (!isHeicFile(file)) throw new Error(`Couldn’t open ${name}. Try a JPEG, PNG or HEIC photo.`);
   }
-  const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
-  const width = Math.round(bitmap.width * scale);
-  const height = Math.round(bitmap.height * scale);
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
+  try {
+    const { heicTo } = await import('heic-to');
+    return await heicTo({ blob: file, type: 'bitmap' });
+  } catch {
+    throw new Error(`Couldn’t open ${name}. It may not be a photo, or it may be damaged.`);
+  }
+}
 
+/** Draws a picture into a canvas no larger than MAX on its longest side. */
+export function fitCanvas(source: CanvasImageSource, w: number, h: number): HTMLCanvasElement {
+  const scale = Math.min(1, MAX / Math.max(w, h));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(w * scale);
+  canvas.height = Math.round(h * scale);
+  canvas.getContext('2d')!.drawImage(source, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
+/** Saves a canvas as WebP (JPEG if this browser can't make WebP). Camera data is never included. */
+export async function encodeCanvas(canvas: HTMLCanvasElement): Promise<Prepared> {
   let blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/webp', QUALITY));
   let ext: 'webp' | 'jpg' = 'webp';
   if (!blob || blob.type !== 'image/webp') {
     blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', QUALITY));
     ext = 'jpg';
   }
-  if (!blob) throw new Error(`Couldn’t convert ${file.name}.`);
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  return { bytes, ext, previewUrl: URL.createObjectURL(blob) };
+  if (!blob) throw new Error('Couldn’t convert the photo.');
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), ext, previewUrl: URL.createObjectURL(blob) };
+}
+
+/** Resizes a photo (keeping its rotation), strips camera data, and converts it to WebP. Works with HEIC too. */
+export async function preparePhoto(file: File): Promise<Prepared> {
+  const bitmap = await decodePhoto(file);
+  const canvas = fitCanvas(bitmap, bitmap.width, bitmap.height);
+  bitmap.close();
+  return encodeCanvas(canvas);
 }
 
 /** A tidy, unique file name, e.g. "2026-11-morning-swim-k3f9.webp". */
@@ -60,6 +87,16 @@ export function setPreviewSource(github: GitHub) {
 
 export function rememberPreview(sitePath: string, url: string) {
   previews.set(sitePath, url);
+}
+
+/** The file behind a photo already in the editor (uploaded now, saved in drafts, or live), for editing it. */
+export async function photoBlob(sitePath: string): Promise<Blob> {
+  const known = previews.get(sitePath);
+  if (known) return (await fetch(known)).blob();
+  const live = await fetch(sitePath).catch(() => null);
+  if (live?.ok && live.headers.get('content-type')?.startsWith('image/')) return live.blob();
+  if (!gh) throw new Error('Couldn’t load the photo.');
+  return new Blob([await gh.readBytes(`public${sitePath}`)]);
 }
 
 /**

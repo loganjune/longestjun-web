@@ -1,7 +1,8 @@
 // Builds editing forms from a short description of each section (see sections.ts).
 // Forms change the data object in place and call `onChange` so the screen knows there are unsaved edits.
-import { el, icon, iconButton, button, busy, toast, plural } from './ui';
-import { preparePhoto, photoName, showImage, rememberPreview } from './images';
+import { el, icon, iconButton, button, busy, toast, plural, confirmBox } from './ui';
+import { preparePhoto, photoName, showImage, rememberPreview, photoBlob, PHOTO_ACCEPT, type Prepared } from './images';
+import { cropPhoto } from './cropper';
 import type { Change } from './github';
 import { scene, SCENES } from '../lib/scene';
 import { sortable, moveItem } from './sortable';
@@ -104,7 +105,8 @@ function renderField(f: Field, data: any, ctx: Ctx): HTMLElement {
               el(
                 'div',
                 { cls: 'ed-row-tools' },
-                iconButton('trash', 'Remove paragraph', () => {
+                iconButton('trash', 'Remove paragraph', async () => {
+                  if (!(await confirmBox('Remove this paragraph?', 'It will be taken out when you save.', 'Remove', true))) return;
                   list.splice(i, 1);
                   draw();
                   ctx.onChange();
@@ -157,18 +159,29 @@ function makeSortable(container: HTMLElement, items: string, list: any[], redraw
   });
 }
 
-/** Upload one photo: shrink it, remember it for the next Save, and return its site path. */
-export async function addPhoto(file: File, folder: string, ctx: Ctx): Promise<string> {
-  const p = await preparePhoto(file);
-  const name = photoName(file.name, p.ext);
-  const sitePath = `/images/${folder}/${name}`;
+/** Keeps a prepared photo for the next Save and returns its site path (/images/<folder>/<name>). */
+export function keepPhoto(p: Prepared, original: string, folder: string, ctx: Ctx): string {
+  const sitePath = `/images/${folder}/${photoName(original, p.ext)}`;
   ctx.uploads.set(`public${sitePath}`, p.bytes);
   rememberPreview(sitePath, p.previewUrl);
   return sitePath;
 }
 
+/** Upload one photo: shrink it, remember it for the next Save, and return its site path. */
+export async function addPhoto(file: File, folder: string, ctx: Ctx): Promise<string> {
+  return keepPhoto(await preparePhoto(file), file.name, folder, ctx);
+}
+
+/** Opens the crop-and-rotate tool for a photo already in the editor; returns the new photo's path, or null. */
+export async function editPhoto(sitePath: string, folder: string, ctx: Ctx): Promise<string | null> {
+  const edited = await cropPhoto(await photoBlob(sitePath));
+  if (!edited) return null;
+  const base = (sitePath.split('/').pop() || 'photo').replace(/\.[^.]+$/, '').replace(/^\d{4}-\d{2}-/, '').replace(/-[a-z0-9]{4}$/, '');
+  return keepPhoto(edited, base, folder, ctx);
+}
+
 function picker(multiple: boolean, onFiles: (files: File[]) => void) {
-  const input = el('input', { type: 'file', accept: 'image/*', multiple, cls: 'ed-file' });
+  const input = el('input', { type: 'file', accept: PHOTO_ACCEPT, multiple, cls: 'ed-file' });
   input.addEventListener('change', () => {
     const files = [...(input.files || [])];
     input.value = '';
@@ -263,7 +276,8 @@ function renderList(f: Extract<Field, { kind: 'list' }>, data: any, ctx: Ctx): H
           el(
             'div',
             { cls: 'ed-row-tools' },
-            iconButton('trash', `Remove ${name}`, () => {
+            iconButton('trash', `Remove ${name}`, async () => {
+              if (!(await confirmBox(`Remove this ${name}?`, `“${title(item)}” will be taken out when you save. Until you publish, you can still discard the change.`, 'Remove', true))) return;
               list.splice(i, 1);
               open.delete(item);
               draw();

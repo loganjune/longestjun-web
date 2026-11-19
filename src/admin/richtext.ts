@@ -6,7 +6,7 @@ import Image from '@tiptap/extension-image';
 import { Markdown } from '@tiptap/markdown';
 import { el, icon, iconButton, toast, askBox } from './ui';
 import { addPhoto, type Ctx } from './forms';
-import { showImage } from './images';
+import { showImage, PHOTO_ACCEPT } from './images';
 
 // Photos in the text are shown through showImage, so photos only saved in drafts still appear.
 const PhotoImage = Image.extend({
@@ -47,7 +47,7 @@ export function richText(
     onUpdate: ctx.onChange,
   });
 
-  const photoInput = el('input', { type: 'file', accept: 'image/*', cls: 'ed-file' });
+  const photoInput = el('input', { type: 'file', accept: PHOTO_ACCEPT, cls: 'ed-file' });
   photoInput.addEventListener('change', async () => {
     const file = photoInput.files?.[0];
     photoInput.value = '';

@@ -3,10 +3,10 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
 import { sortable, moveItem } from '../sortable';
-import { addPhoto, type Ctx } from '../forms';
-import { showImage } from '../images';
+import { addPhoto, editPhoto, type Ctx } from '../forms';
+import { showImage, PHOTO_ACCEPT, isPhotoFile } from '../images';
 import { scene } from '../../lib/scene';
-import { toast } from '../ui';
+import { toast, confirmBox } from '../ui';
 import type { Photo } from '../albums';
 import { Icon } from './Icon';
 
@@ -34,9 +34,20 @@ type Props = {
   cover?: string;
   onCover?: (photo: string) => void;
   emptyText: string;
+  /** Album cards (elsewhere on the screen) a photo can be dragged onto. */
+  dropTargets?: string;
+  onDropTarget?: (index: number, target: HTMLElement) => void;
+  /** When given, each photo gets a "Move to album" button. */
+  onMoveOut?: (index: number) => void;
+  /**
+   * When given, adding photos first asks where they go. Resolves with an album id, null for this
+   * grid, or undefined if cancelled. Photos for an album go to onAddToAlbum instead of this grid.
+   */
+  chooseDestination?: (count: number) => Promise<string | null | undefined>;
+  onAddToAlbum?: (photos: string[], albumId: string) => void;
 };
 
-export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, onCover, emptyText }: Props) {
+export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, onCover, emptyText, dropTargets, onDropTarget, onMoveOut, chooseDestination, onAddToAlbum }: Props) {
   const grid = useRef<HTMLOListElement>(null);
   const latest = useRef(photos);
   latest.current = photos;
@@ -52,23 +63,41 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
       handle: '.ed-grip',
       grid: true,
       onMove: (from, to) => onChange(moveItem([...latest.current], from, to)),
+      dropTargets,
+      onDropTarget,
     });
-  }, [onChange]);
+  }, [onChange, dropTargets, onDropTarget]);
+
+  const edit = async (i: number) => {
+    const p = latest.current[i];
+    if (!p?.photo) return;
+    try {
+      const path = await editPhoto(p.photo, folder, ctx);
+      if (path) onChange(latest.current.map((x, j) => (j === i ? { ...x, photo: path } : x)));
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    }
+  };
 
   const upload = async (files: File[]) => {
-    const images = files.filter((f) => f.type.startsWith('image/'));
+    const images = files.filter(isPhotoFile);
     if (!images.length) return;
+    const dest = chooseDestination ? await chooseDestination(images.length) : null;
+    if (dest === undefined) return;
     setBusy((n) => n + images.length);
+    const forAlbum: string[] = [];
     for (const file of images) {
       try {
-        const path = await addPhoto(file, folder, ctx);
-        onChange([...latest.current, make(path)]);
+        const path = await addPhoto(file, dest ? 'albums' : folder, ctx);
+        if (dest) forAlbum.push(path);
+        else onChange([...latest.current, make(path)]);
       } catch (e) {
         toast((e as Error).message, 'error');
       } finally {
         setBusy((n) => n - 1);
       }
     }
+    if (dest && forAlbum.length) onAddToAlbum?.(forAlbum, dest);
   };
 
   const onDrop = (e: DragEvent) => {
@@ -97,7 +126,7 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
           <Icon name="photo" size={16} /> Add photos
           <input
             type="file"
-            accept="image/*"
+            accept={PHOTO_ACCEPT}
             multiple
             className="ed-file"
             onChange={(e) => {
@@ -143,12 +172,25 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
                     aria-label={`Caption for photo ${i + 1}`}
                     onChange={(e) => set(i, { caption: e.target.value })}
                   />
+                  {p.photo && (
+                    <button type="button" className="ed-icon" aria-label={`Crop or rotate photo ${i + 1}`} title="Crop or rotate" onClick={() => edit(i)}>
+                      <Icon name="crop" />
+                    </button>
+                  )}
+                  {onMoveOut && p.photo && (
+                    <button type="button" className="ed-icon" aria-label={`Move photo ${i + 1} to an album`} title="Move to album" onClick={() => onMoveOut(i)}>
+                      <Icon name="move" />
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="ed-icon"
                     aria-label={`Remove photo ${i + 1}`}
                     title="Remove"
-                    onClick={() => onChange(latest.current.filter((_, j) => j !== i))}
+                    onClick={async () => {
+                      if (!(await confirmBox('Remove this photo?', `${p.caption ? `“${p.caption}” will` : 'It will'} be taken out when you save. Until you publish, you can still discard the change.`, 'Remove', true))) return;
+                      onChange(latest.current.filter((_, j) => j !== i));
+                    }}
                   >
                     <Icon name="trash" />
                   </button>
