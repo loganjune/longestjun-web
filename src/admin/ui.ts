@@ -40,6 +40,8 @@ const PATHS: Record<string, string> = {
   back: '<path d="M15 6l-6 6 6 6"/>',
   external: '<path d="M14 5h5v5M19 5l-8 8M17 14v5H5V7h5"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  grip: '<circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/>',
+  star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.8L12 16.9l-5.25 2.7 1-5.8L3.5 9.7l5.9-.9z"/>',
 };
 
 export function icon(name: string, size = 18): SVGSVGElement {
@@ -157,10 +159,12 @@ export function askBox(title: string, label: string, value = '', placeholder = '
 export function describePath(path: string): string {
   const note = path.match(/^src\/content\/notes\/(.+)\.mdx?$/);
   if (note) return `Note: ${note[1].replace(/-/g, ' ')}`;
+  const project = path.match(/^src\/content\/projects\/(.+)\.md$/);
+  if (project) return `Project: ${project[1].replace(/-/g, ' ')}`;
   const album = path.match(/^src\/content\/albums\/(.+)\.md$/);
   if (album) return `Album: ${album[1].replace(/-/g, ' ')}`;
   const data = path.match(/^src\/data\/(.+)\.json$/);
-  if (data) return ({ site: 'Site text & About', now: 'Currently', projects: 'Projects', gallery: 'Gallery', shop: 'Shop', resume: 'Resume', services: 'Service settings' } as Record<string, string>)[data[1]] || data[1];
+  if (data) return ({ site: 'Site text & About', now: 'Currently', projects: 'Project order', gallery: 'Gallery', shop: 'Shop', resume: 'Resume', services: 'Service settings' } as Record<string, string>)[data[1]] || data[1];
   const img = path.match(/^public\/images\/(.+)$/);
   if (img) return `Photo: ${img[1]}`;
   return path;

@@ -16,7 +16,13 @@ const PREV = icon(<path d="M15 6l-6 6 6 6" />);
 const NEXT = icon(<path d="M9 6l6 6-6 6" />);
 const CLOSE = icon(<path d="M6 6l12 12M18 6L6 18" />);
 
-export default function PhotoGallery({ photos, label = 'Photos' }: { photos: Photo[]; label?: string }) {
+// Photo-book rhythm: one wide, a pair, one set left, one set right, then repeat.
+const BOOK = ['wide', 'pair', 'pair', 'left', 'right'];
+
+type Props = { photos: Photo[]; label?: string; layout?: 'grid' | 'book' };
+
+export default function PhotoGallery({ photos, label = 'Photos', layout = 'grid' }: Props) {
+  const book = layout === 'book';
   const [open, setOpen] = useState<number | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
@@ -65,12 +71,16 @@ export default function PhotoGallery({ photos, label = 'Photos' }: { photos: Pho
 
   return (
     <>
-      <div className="cards three">
+      <div className={book ? 'book' : 'cards three'}>
         {photos.map((p, i) => (
-          <figure key={i} className={`card${i % 3 === 1 ? ' tall' : ''}`} style={{ margin: 0 }}>
+          <figure
+            key={i}
+            className={book ? `photo bk bk-${BOOK[i % BOOK.length]}` : `card photo${i % 3 === 1 ? ' tall' : ''}`}
+            style={{ margin: 0 }}
+          >
             <button
               type="button"
-              className="ph fill photo-open"
+              className={book ? 'bk-pic photo-open' : 'ph fill photo-open'}
               aria-label={`Open photo ${i + 1} of ${n}${p.caption ? `: ${p.caption}` : ''}`}
               onClick={(e) => {
                 opener.current = e.currentTarget;
@@ -80,9 +90,8 @@ export default function PhotoGallery({ photos, label = 'Photos' }: { photos: Pho
               <Picture picture={p.picture} alt={p.caption} />
             </button>
             {p.caption && (
-              <figcaption className="cap">
-                <span className="lab soft">{p.caption}</span>
-              </figcaption>
+              // Over the photo on hover with a mouse; small and always visible underneath on phones.
+              <figcaption className="photo-cap">{p.caption}</figcaption>
             )}
           </figure>
         ))}

@@ -1,8 +1,6 @@
-// The editable parts of the site, besides notes. Each maps to one file in src/data/.
+// The editable parts of the site, besides notes, the gallery (albums.ts) and projects (projects.ts). Each maps to one file in src/data/.
 // To add a field, add it to the data file and here (and to src/pages/admin/config.yml.ts for the classic editor).
-import type { Field, Ctx } from './forms';
-import type { GitHub } from './github';
-import { albumsPanel } from './albums';
+import type { Field } from './forms';
 
 export type Section = {
   id: string;
@@ -11,63 +9,11 @@ export type Section = {
   intro: string;
   file: string;
   fields: Field[];
-  /** Something extra shown after the fields (the Gallery's albums list). */
-  extra?: (gh: GitHub, data: any, ctx: Ctx) => Promise<HTMLElement>;
 };
 
 const DRAWING_HINT = 'Upload a photo, or pick one of the built-in drawings.';
 
 export const SECTIONS: Section[] = [
-  {
-    id: 'projects',
-    title: 'Projects',
-    jp: '制作',
-    intro: 'The first three are featured on the homepage. Use the arrows to change the order.',
-    file: 'src/data/projects.json',
-    fields: [
-      {
-        kind: 'list',
-        key: 'projects',
-        label: 'Projects',
-        itemName: 'Project',
-        thumbs: true,
-        summary: (p) => [p.title, p.status, p.year].filter(Boolean).join(' · '),
-        newItem: () => ({ title: '', status: 'Building', year: String(new Date().getFullYear()), description: '', picture: 'sea', photo: '', link: '' }),
-        fields: [
-          { kind: 'text', key: 'title', label: 'Title' },
-          { kind: 'select', key: 'status', label: 'Status', options: ['Building', 'Shipped', 'Idea'], hint: 'Drives the filter on the Projects page.' },
-          { kind: 'text', key: 'year', label: 'Year' },
-          { kind: 'textarea', key: 'description', label: 'Description' },
-          { kind: 'picture', folder: 'projects', hint: DRAWING_HINT },
-          { kind: 'text', key: 'link', label: 'Link', placeholder: 'https://', hint: 'Optional.' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'gallery',
-    title: 'Gallery',
-    jp: '写真',
-    intro: 'Single photos show first on the Gallery page, then your albums. Add several photos at once and use the arrows to set the order.',
-    file: 'src/data/gallery.json',
-    extra: albumsPanel,
-    fields: [
-      {
-        kind: 'list',
-        key: 'gallery',
-        label: 'Single photos',
-        itemName: 'Photo',
-        thumbs: true,
-        summary: (g) => g.caption || 'No caption yet',
-        newItem: () => ({ picture: 'sea', photo: '', caption: '' }),
-        bulkPhotos: { folder: 'gallery', make: (photo) => ({ picture: 'sea', photo, caption: '' }) },
-        fields: [
-          { kind: 'text', key: 'caption', label: 'Caption', hint: 'Also read aloud to people using screen readers.' },
-          { kind: 'picture', folder: 'gallery' },
-        ],
-      },
-    ],
-  },
   {
     id: 'site',
     title: 'Text & About',

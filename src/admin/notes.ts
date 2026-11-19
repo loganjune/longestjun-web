@@ -3,18 +3,19 @@
 import type { GitHub } from './github';
 import { parseFrontmatter, serializeFrontmatter, uniqueId } from './frontmatter';
 import { el, icon, button, busy, toast, confirmBox, row, rowList } from './ui';
-import { saveBar } from './forms';
+import { saveBar, renderFields } from './forms';
+import { isImage } from '../lib/url';
 import { richText } from './richtext';
 import type { View } from './app';
 
 const DIR = 'src/content/notes';
 
-type NoteMeta = { title: string; date: string; description: string; draft: boolean };
+type NoteMeta = { title: string; date: string; description: string; cover: string; draft: boolean };
 
 function parseNote(text: string): { meta: NoteMeta; body: string } {
   const { data, body } = parseFrontmatter(text);
   const str = (v: unknown) => (v === undefined || v === null ? '' : String(v));
-  return { meta: { title: str(data.title), date: str(data.date).slice(0, 10), description: str(data.description), draft: data.draft === true }, body };
+  return { meta: { title: str(data.title), date: str(data.date).slice(0, 10), description: str(data.description), cover: str(data.cover), draft: data.draft === true }, body };
 }
 
 type NoteRow = { id: string; path: string; meta: NoteMeta };
@@ -53,7 +54,7 @@ export async function notesList(gh: GitHub): Promise<View> {
 export async function noteEditor(gh: GitHub, id: string | null, go: (hash: string) => void, onSaved: () => void): Promise<View> {
   const isNew = id === null;
   let path = '';
-  let meta: NoteMeta = { title: '', date: new Date().toLocaleDateString('en-CA'), description: '', draft: true };
+  let meta: NoteMeta = { title: '', date: new Date().toLocaleDateString('en-CA'), description: '', cover: '', draft: true };
   let body = '';
   if (!isNew) {
     // Notes are .md, but the site also accepts .mdx, so look for either.
@@ -85,7 +86,7 @@ export async function noteEditor(gh: GitHub, id: string | null, go: (hash: strin
   const bar = saveBar(
     isNew ? 'Not saved yet' : 'Saved',
     async (photos) => {
-      const m: NoteMeta = { title: title.value.trim(), date: date.value, description: desc.value.trim(), draft: draft.checked };
+      const m: NoteMeta = { title: title.value.trim(), date: date.value, description: desc.value.trim(), cover: cover.photo || (cover.picture !== 'dusk' ? cover.picture : ''), draft: draft.checked };
       if (!m.title) throw new Error('Please give the note a title.');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(m.date)) throw new Error('Please pick a date.');
       let target = path;
@@ -105,6 +106,8 @@ export async function noteEditor(gh: GitHub, id: string | null, go: (hash: strin
   const title = el('input', { cls: 'ed-title-input', value: meta.title, placeholder: 'Title', 'aria-label': 'Title' });
   const date = el('input', { type: 'date', value: meta.date, 'aria-label': 'Date' });
   const desc = el('input', { value: meta.description, placeholder: 'Optional. Shown under the title in lists.' });
+  // The cover is a photo or a built-in drawing; notes without one use the "dusk" drawing on their card.
+  const cover = isImage(meta.cover) ? { picture: 'dusk', photo: meta.cover } : { picture: meta.cover || 'dusk', photo: '' };
   const draft = el('input', { type: 'checkbox', checked: meta.draft });
   for (const i of [title, date, desc]) i.addEventListener('input', changed);
   draft.addEventListener('change', changed);
@@ -128,6 +131,7 @@ export async function noteEditor(gh: GitHub, id: string | null, go: (hash: strin
         el('label', { cls: 'ed-field ed-grow' }, el('span', { cls: 'lab' }, 'Short description'), desc),
         el('label', { cls: 'ed-check' }, draft, el('span', {}, el('span', { cls: 'lab' }, 'Draft'), el('span', { cls: 'ed-hint' }, 'Hidden from the live site'))),
       ),
+      renderFields([{ kind: 'picture', label: 'Cover', folder: 'notes', hint: 'Shown on the Stories page and at the top of the note.' }], cover, bar.ctx),
       doc.element,
     ),
     footer: bar.footer,

@@ -1,9 +1,9 @@
-// The Projects page: status filter (All / Building / Shipped / Idea) and the project cards.
-// Changing the filter fades the matching cards in, one after another.
+// The Projects page: status filter (All / Building / Shipped / Idea) and a row per project,
+// like a case-study index: title and link, role and tools, description, picture.
 import { useState } from 'react';
 import { Picture } from './Picture';
 
-type Project = { title: string; status: string; year: string; description: string; picture: string; link?: string };
+type Project = { id: string; href: string; title: string; status: string; year: string; role: string; tools: string; description: string; picture: string };
 
 const STATUSES = ['All', 'Building', 'Shipped', 'Idea'];
 
@@ -26,25 +26,31 @@ export default function ProjectsFilter({ projects }: { projects: Project[] }) {
         </div>
       </div>
       {/* A new key on each filter change restarts the fade-in. */}
-      <div className="cards" key={status}>
+      <ol className="case-rows" key={status}>
         {shown.map((p, i) => (
-          <article className="card rise" key={p.title + i} style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
-            <div className="ph fill">
+          <li className="case-row rise" key={p.id} style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
+            <div className="case-title">
+              <h3>
+                <a href={p.href}>{p.title}</a>
+              </h3>
+              <a className="pill" href={p.href} tabIndex={-1} aria-hidden="true">
+                View project
+              </a>
+            </div>
+            <div className="case-meta lab soft">
+              <span>
+                {p.status} · {p.year}
+              </span>
+              {p.role && <span>{p.role}</span>}
+              {p.tools && <span>{p.tools}</span>}
+            </div>
+            <p className="case-desc">{p.description}</p>
+            <a className="case-pic fill" href={p.href} tabIndex={-1} aria-hidden="true">
               <Picture picture={p.picture} alt="" />
-            </div>
-            <div className="cap">
-              <div>
-                <span className="lab soft">
-                  {p.status} · {p.year}
-                </span>
-                <h3>{p.link ? <a href={p.link}>{p.title}</a> : p.title}</h3>
-                <p>{p.description}</p>
-              </div>
-              <span className="arrow">→</span>
-            </div>
-          </article>
+            </a>
+          </li>
         ))}
-      </div>
+      </ol>
       {shown.length === 0 && <p className="sample">Nothing here yet.</p>}
     </>
   );

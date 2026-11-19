@@ -2,6 +2,7 @@
 // The longest june editor. Everything on this page is built by src/admin/app.ts after sign-in.
 import '../../styles/global.css';
 import '../../admin/admin.css';
+import ReactReady from '../../components/react/ReactReady';
 import { services } from '../../lib/content';
 import { url } from '../../lib/url';
 ---
@@ -22,6 +23,7 @@ import { url } from '../../lib/url';
     <p class="soft ed-loading">Opening the editor…</p>
   </div>
   <noscript><p class="g">The editor needs JavaScript turned on.</p></noscript>
+  <ReactReady client:load />
   <script>
     import '../../admin/app.ts';
   </script>

@@ -24,7 +24,15 @@ const PhotoImage = Image.extend({
  * Creates the editor. `folder` is where photos added to the text are stored (public/images/<folder>).
  * Returns the element to show, a way to read the text as Markdown, and a clean-up function.
  */
-export function richText(markdown: string, ctx: Ctx, folder: string, label: string, placeholder = 'Start writing…') {
+export function richText(
+  markdown: string,
+  ctx: Ctx,
+  folder: string,
+  label: string,
+  placeholder = 'Start writing…',
+  /** Optional: offer a choice of photos (e.g. the album's own) instead of going straight to an upload. */
+  pickPhoto?: () => Promise<{ src: string; alt: string } | null>,
+) {
   const mount = el('div', { cls: 'ed-doc note-body' });
   const editor = new Editor({
     element: mount,
@@ -88,7 +96,12 @@ export function richText(markdown: string, ctx: Ctx, folder: string, label: stri
       },
       () => editor.isActive('link'),
     ),
-    el('label', { cls: 'ed-icon ed-tool', title: 'Add a photo', 'aria-label': 'Add a photo' }, icon('photo'), photoInput),
+    pickPhoto
+      ? tool('photo', 'Add a photo', async () => {
+          const chosen = await pickPhoto();
+          if (chosen) editor.chain().focus().setImage(chosen).run();
+        })
+      : el('label', { cls: 'ed-icon ed-tool', title: 'Add a photo', 'aria-label': 'Add a photo' }, icon('photo'), photoInput),
     el('span', { cls: 'ed-toolbar-gap' }),
     tool('undo', 'Undo', () => c().undo().run()),
     tool('redo', 'Redo', () => c().redo().run()),

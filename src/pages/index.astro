@@ -2,12 +2,13 @@
 import Layout from '../layouts/Layout.astro';
 import Pic from '../components/Pic.astro';
 import Daylight from '../components/react/Daylight';
-import { site as S, projects, pic } from '../lib/content';
+import { site as S } from '../lib/content';
+import { getProjects, projectPicture } from '../lib/projects';
 import { url, PAGES, formatDate } from '../lib/url';
-import { getNotes } from '../lib/notes';
+import { getStories } from '../lib/stories';
 
-const featured = projects.slice(0, 3);
-const notes = (await getNotes()).slice(0, 3);
+const featured = (await getProjects()).slice(0, 3).map((p) => ({ ...p.data, id: p.id, pic: projectPicture(p) }));
+const stories = (await getStories()).slice(0, 3);
 const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
 ---
 <Layout overPlate current="">
@@ -47,7 +48,7 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
 
   {featured.length > 0 && (
     <div class="plate feat" id="feat">
-      {featured.map((p, i) => <div class="fslide fill" data-off={i > 0 ? '' : undefined}><Pic picture={pic(p)} /></div>)}
+      {featured.map((p, i) => <div class="fslide fill" data-off={i > 0 ? '' : undefined}><Pic picture={p.pic} /></div>)}
       <h2 class="disp fit"><span id="feattitle">{featured[0].title}</span></h2>
       <nav class="lab" id="featnav" aria-label="Featured projects">
         {featured.map((p, i) => <button type="button" data-i={i} data-status={p.status} data-year={p.year} aria-current={i === 0 ? 'true' : 'false'}>{p.title}</button>)}
@@ -57,10 +58,10 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
   )}
 
   <div class="g sec facts">
-    <span class="lab">Recent notes</span>
+    <span class="lab">Recent stories</span>
     <ul class="rows">
-      {notes.map((n) => (
-        <li><a href={url(`notes/${n.id}`)} class="split"><span class="lab soft">{formatDate(n.data.date)}</span><span class="fact-main"><span>{n.data.title}</span><span class="arrow">→</span></span></a></li>
+      {stories.map((s) => (
+        <li><a href={s.href} class="split"><span class="lab soft">{s.date ? formatDate(s.date) : s.kind}</span><span class="fact-main"><span>{s.title}</span><span class="arrow">→</span></span></a></li>
       ))}
     </ul>
   </div>

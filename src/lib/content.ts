@@ -2,13 +2,11 @@
 export { default as site } from '../data/site.json';
 /** Public settings for the contact form and admin (no secrets live here). */
 export { default as services } from '../data/services.json';
-import projectsFile from '../data/projects.json';
 import nowFile from '../data/now.json';
 import galleryFile from '../data/gallery.json';
 import shopFile from '../data/shop.json';
 import resumeFile from '../data/resume.json';
 
-export const projects = projectsFile.projects;
 export const now = nowFile.now;
 export const gallery = galleryFile.gallery;
 /** Album ids (file names in src/content/albums/) in the order they appear on the Gallery page. */

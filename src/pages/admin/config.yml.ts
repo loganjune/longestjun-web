@@ -23,12 +23,12 @@ const text = (name: string, label: string, extra: Record<string, unknown> = {}) 
 const longText = (name: string, label: string, extra: Record<string, unknown> = {}) => ({ name, label, widget: 'text', ...extra });
 
 /** One editor page for a src/data/*.json file whose content sits under a single key. */
-const dataFile = (name: string, label: string, field: Record<string, unknown>) => ({
+const dataFile = (name: string, label: string, field: Record<string, unknown>, ...more: Record<string, unknown>[]) => ({
   name,
   label,
   file: `src/data/${name}.json`,
   format: 'json',
-  fields: [field],
+  fields: [field, ...more],
 });
 
 // One source for the domain: `site` in astro.config.mjs.
@@ -87,6 +87,7 @@ const config = {
           time_format: false,
         },
         text('description', 'Short description', { required: false, hint: 'Optional. Shown under the title in lists.' }),
+        { name: 'cover', label: 'Cover', widget: 'image', required: false, hint: 'Optional. Shown on the Stories page and at the top of the note.' },
         {
           name: 'draft',
           label: 'Draft',
@@ -96,6 +97,34 @@ const config = {
           hint: 'Drafts are saved but stay off the live site.',
         },
         { name: 'body', label: 'Note', widget: 'markdown' },
+      ],
+    },
+    {
+      name: 'projects',
+      label: 'Projects',
+      label_singular: 'Project',
+      folder: 'src/content/projects',
+      extension: 'md',
+      format: 'frontmatter',
+      create: true,
+      slug: '{{slug}}',
+      identifier_field: 'title',
+      summary: '{{title}} · {{status}} · {{year}}',
+      media_folder: '/public/images/projects',
+      public_folder: '/images/projects',
+      fields: [
+        text('title', 'Title'),
+        { name: 'status', label: 'Status', widget: 'select', options: ['Building', 'Shipped', 'Idea'], default: 'Building' },
+        text('year', 'Year'),
+        longText('description', 'Description'),
+        text('role', 'Role', { required: false }),
+        text('tools', 'Tools', { required: false }),
+        text('link', 'Link', { required: false }),
+        drawing,
+        photo,
+        { name: 'images', label: 'More images', widget: 'list', required: false, fields: [{ ...photo, name: 'photo', required: true }, text('caption', 'Caption', { required: false })] },
+        { name: 'draft', label: 'Draft', widget: 'boolean', default: false, required: false },
+        { name: 'body', label: 'Write-up', widget: 'markdown', required: false },
       ],
     },
     {
@@ -134,23 +163,6 @@ const config = {
             },
           ],
         },
-        dataFile('projects', 'Projects', {
-          name: 'projects',
-          label: 'Projects',
-          label_singular: 'Project',
-          widget: 'list',
-          hint: 'The first three are featured on the homepage. Drag to reorder.',
-          summary: '{{fields.title}} · {{fields.status}} · {{fields.year}}',
-          fields: [
-            text('title', 'Title'),
-            { name: 'status', label: 'Status', widget: 'select', options: ['Building', 'Shipped', 'Idea'], default: 'Building' },
-            text('year', 'Year'),
-            longText('description', 'Description'),
-            drawing,
-            photo,
-            text('link', 'Link', { required: false, hint: 'Optional web address.' }),
-          ],
-        }),
         dataFile('gallery', 'Gallery', {
           name: 'gallery',
           label: 'Gallery',
@@ -158,6 +170,13 @@ const config = {
           widget: 'list',
           summary: '{{fields.caption}}',
           fields: [text('caption', 'Caption'), photo, drawing],
+        }, {
+          // Kept so saving here doesn't wipe the album order set in the main editor.
+          name: 'albums',
+          label: 'Album order (file names)',
+          widget: 'list',
+          required: false,
+          hint: 'Set this in the main editor by dragging albums.',
         }),
         dataFile('now', 'Currently (About page)', {
           name: 'now',

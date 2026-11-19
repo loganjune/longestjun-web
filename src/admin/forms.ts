@@ -4,6 +4,7 @@ import { el, icon, iconButton, button, busy, toast, plural } from './ui';
 import { preparePhoto, photoName, showImage, rememberPreview } from './images';
 import type { Change } from './github';
 import { scene, SCENES } from '../lib/scene';
+import { sortable, moveItem } from './sortable';
 
 export type Field =
   | { kind: 'text' | 'textarea'; key: string; label: string; hint?: string; placeholder?: string; big?: boolean }
@@ -98,12 +99,11 @@ function renderField(f: Field, data: any, ctx: Ctx): HTMLElement {
             return el(
               'div',
               { cls: 'ed-para' },
+              grip(`Paragraph ${i + 1}`),
               ta,
               el(
                 'div',
                 { cls: 'ed-row-tools' },
-                iconButton('up', 'Move up', () => move(list, i, -1, draw, ctx), { disabled: i === 0 }),
-                iconButton('down', 'Move down', () => move(list, i, 1, draw, ctx), { disabled: i === list.length - 1 }),
                 iconButton('trash', 'Remove paragraph', () => {
                   list.splice(i, 1);
                   draw();
@@ -120,6 +120,7 @@ function renderField(f: Field, data: any, ctx: Ctx): HTMLElement {
         );
       };
       draw();
+      makeSortable(wrap, '.ed-para', list, draw, ctx);
       return field(f.label, wrap, f.hint, true);
     }
     case 'object': {
@@ -137,12 +138,23 @@ function field(label: string, control: HTMLElement, hint?: string, group = false
   return el(group ? 'div' : 'label', { cls: 'ed-field' }, el('span', { cls: 'lab' }, label), control, hint ? el('span', { cls: 'ed-hint' }, hint) : null);
 }
 
-function move(list: any[], i: number, by: number, redraw: () => void, ctx: Ctx) {
-  const j = i + by;
-  if (j < 0 || j >= list.length) return;
-  [list[i], list[j]] = [list[j], list[i]];
-  redraw();
-  ctx.onChange();
+/** The grip handle: drag it to reorder, or focus it and use the arrow keys. */
+function grip(label: string) {
+  return el('button', { type: 'button', cls: 'ed-icon ed-grip', 'aria-label': `${label}. Drag, or use the arrow keys, to reorder.`, title: 'Drag to reorder' }, icon('grip'));
+}
+
+/** Turns on drag-and-drop for a list that redraws itself from `list`. */
+function makeSortable(container: HTMLElement, items: string, list: any[], redraw: () => void, ctx: Ctx) {
+  sortable({
+    container,
+    items,
+    handle: '.ed-grip',
+    onMove: (from, to) => {
+      moveItem(list, from, to);
+      redraw();
+      ctx.onChange();
+    },
+  });
 }
 
 /** Upload one photo: shrink it, remember it for the next Save, and return its site path. */
@@ -230,6 +242,7 @@ function renderList(f: Extract<Field, { kind: 'list' }>, data: any, ctx: Ctx): H
         const head = el(
           'div',
           { cls: 'ed-item-head' },
+          grip(title(item)),
           el(
             'button',
             {
@@ -250,8 +263,6 @@ function renderList(f: Extract<Field, { kind: 'list' }>, data: any, ctx: Ctx): H
           el(
             'div',
             { cls: 'ed-row-tools' },
-            iconButton('up', `Move ${name} up`, () => move(list, i, -1, draw, ctx), { disabled: i === 0 }),
-            iconButton('down', `Move ${name} down`, () => move(list, i, 1, draw, ctx), { disabled: i === list.length - 1 }),
             iconButton('trash', `Remove ${name}`, () => {
               list.splice(i, 1);
               open.delete(item);
@@ -305,6 +316,7 @@ function renderList(f: Extract<Field, { kind: 'list' }>, data: any, ctx: Ctx): H
     : null;
 
   draw();
+  makeSortable(box, '.ed-item', list, draw, ctx);
   return el(
     'div',
     { cls: 'ed-field' },

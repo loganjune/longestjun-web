@@ -22,9 +22,9 @@ const albums = await getAlbums();
       <div class="cards">
         {albums.map((a) => (
           <a class="card album" href={url(`gallery/${a.id}`)}>
-            <div class="ph fill"><Pic picture={albumCover(a.data)} alt="" /></div>
+            <div class="ph fill"><Pic picture={albumCover(a.data)} alt="" /><span class="album-name disp" aria-hidden="true">{a.data.title}</span></div>
             <div class="cap">
-              <div><h3>{a.data.title}</h3>{a.data.location && <p>{a.data.location}</p>}</div>
+              <div><h3 class="album-title">{a.data.title}</h3>{a.data.location && <p>{a.data.location}</p>}</div>
               <span class="lab soft">{a.data.photos.length} {a.data.photos.length === 1 ? 'photo' : 'photos'} →</span>
             </div>
           </a>

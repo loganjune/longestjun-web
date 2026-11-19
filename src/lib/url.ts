@@ -20,7 +20,7 @@ export const PAGES = [
   { href: '', name: 'Home', jp: 'ホーム' },
   { href: 'about', name: 'About', jp: '自己紹介' },
   { href: 'projects', name: 'Projects', jp: '制作' },
-  { href: 'notes', name: 'Notes', jp: '記録' },
+  { href: 'stories', name: 'Stories', jp: '記録' },
   { href: 'gallery', name: 'Gallery', jp: '写真' },
   { href: 'resume', name: 'Resume', jp: '経歴' },
   { href: 'shop', name: 'Shop', jp: 'ショップ' },

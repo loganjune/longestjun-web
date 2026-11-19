@@ -1,11 +1,11 @@
 ---
-// One gallery album: its details, the optional travel story, then its photos.
+// One album, laid out like a travel story: heading and lead photo, the story (if there is one),
+// then all the photos in a photo-book layout. Tap a photo to see it large.
 import Layout from '../../layouts/Layout.astro';
+import StoryHead from '../../components/StoryHead.astro';
 import PhotoGallery from '../../components/react/PhotoGallery';
-import PageHead from '../../components/PageHead.astro';
 import { render } from 'astro:content';
-import { getAlbums } from '../../lib/albums';
-import { url } from '../../lib/url';
+import { getAlbums, albumCover } from '../../lib/albums';
 
 export async function getStaticPaths() {
   const albums = await getAlbums();
@@ -13,24 +13,30 @@ export async function getStaticPaths() {
 }
 
 const { album } = Astro.props;
-const { title, location, description, photos, draft } = album.data;
+const { title, location, date, description, photos, draft } = album.data;
 const { Content } = await render(album);
 const hasStory = Boolean(album.body?.trim());
 ---
 <Layout title={title} description={description || location} current="gallery">
-  <PageHead title={title} jp="写真">
-    <span class="lab soft links">{location && <span>{location}</span>}<span>{photos.length} {photos.length === 1 ? 'photo' : 'photos'}</span>{draft && <span>Draft</span>}</span>
-  </PageHead>
-  <div class="g sec split">
-    <a class="lab soft" href={url('gallery')} style="text-decoration:none;align-self:start">← Gallery</a>
-    <div>
-      {description && <p class="statement" style="margin-bottom:32px">{description}</p>}
-      {hasStory && <article class="note-body"><Content /></article>}
+  <StoryHead
+    kind={hasStory ? 'Travel' : 'Album'}
+    title={title}
+    location={location}
+    date={date}
+    description={description}
+    picture={albumCover(album.data)}
+    back={{ href: 'gallery', label: 'Gallery' }}
+    draft={draft}
+  />
+  {hasStory && (
+    <div class="g story-body">
+      <article class="note-body"><Content /></article>
     </div>
-  </div>
+  )}
   {photos.length > 0 && (
-    <div class="g sec">
-      <PhotoGallery client:visible label={title} photos={photos.map((p) => ({ picture: p.photo, caption: p.caption }))} />
-    </div>
+    <section class="g sec album-photos">
+      <p class="lab story-section">{photos.length} {photos.length === 1 ? 'photo' : 'photos'}</p>
+      <PhotoGallery client:visible layout="book" label={title} photos={photos.map((p) => ({ picture: p.photo, caption: p.caption }))} />
+    </section>
   )}
 </Layout>

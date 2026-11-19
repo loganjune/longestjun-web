@@ -7,7 +7,8 @@ import { renderFields, saveBar } from './forms';
 import { SECTIONS, type Section } from './sections';
 import { notesList, noteEditor } from './notes';
 import { MessagesApi, messagesView } from './messages';
-import { albumEditor } from './albums';
+import { galleryView, albumView } from './albums';
+import { projectsView, projectView } from './projects';
 
 export type View = {
   title: string;
@@ -218,7 +219,7 @@ async function sectionView(s: Section): Promise<View> {
     title: s.title,
     jp: s.jp,
     intro: s.intro,
-    body: s.extra ? el('div', { cls: 'ed-fields' }, renderFields(s.fields, data, bar.ctx), await s.extra(gh, data, bar.ctx)) : renderFields(s.fields, data, bar.ctx),
+    body: renderFields(s.fields, data, bar.ctx),
     footer: bar.footer,
     isDirty: bar.isDirty,
   };
@@ -253,7 +254,10 @@ async function route(force = false) {
     if (!a) view = await overview();
     else if (a === 'notes' && !b) view = await notesList(gh);
     else if (a === 'notes') view = await noteEditor(gh, b === 'new' ? null : decodeURIComponent(b), goTo, refreshPending);
-    else if (a === 'albums' && b) view = await albumEditor(gh, b === 'new' ? null : decodeURIComponent(b), goTo, refreshPending);
+    else if (a === 'gallery') view = await galleryView(gh, refreshPending);
+    else if (a === 'projects' && !b) view = await projectsView(gh, refreshPending);
+    else if (a === 'projects') view = await projectView(gh, b === 'new' ? null : decodeURIComponent(b), goTo, refreshPending);
+    else if (a === 'albums' && b) view = await albumView(gh, b === 'new' ? null : decodeURIComponent(b), goTo, refreshPending);
     else if (a === 'messages') view = await messagesView(api, () => route(true));
     else {
       const s = SECTIONS.find((x) => x.id === a);

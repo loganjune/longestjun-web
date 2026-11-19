@@ -24,7 +24,7 @@ To publish, commit and push to `main` (for example with GitHub Desktop). Hosting
 
 ## Editing on the web (no code)
 
-Go to https://longestjune.com/admin and sign in with GitHub. It works on a phone too. You can write notes, add projects, make gallery albums (with a travel story), upload photos and change any text on the site.
+Go to https://longestjune.com/admin and sign in with GitHub. It works on a phone too. You can write notes, add projects (each with its own case-study page), make gallery albums (with a travel story), upload photos and change any text on the site. Drag the grip (⋮⋮) next to any photo or item to reorder it, or drop photos from your computer onto a photo grid.
 
 - **Save** stores your change on GitHub as a draft (on the `editor-drafts` branch). Nothing goes live yet, and drafts are safe even if you close the browser.
 - **Publish** (the bar at the bottom of the screen) makes all saved drafts live. The site updates a minute or two later.
@@ -65,10 +65,10 @@ lists, quotes and headings all work.
 Everything else lives in `src/data/`, one file per part of the site (you can also edit these in the web editor at `/admin`):
 
 - `site.json`: tagline over the video, the Hello line, location, email, GitHub link, and the About page text.
-- `projects.json`: `title`, `status` (`Building`, `Shipped` or `Idea`, which drive the filters), `year`, `description`, `picture`, an optional `photo` and an optional `link`. The first three are featured on the homepage.
+- `projects.json`: the order of projects (the first three are featured on the homepage). Each project is a Markdown file in `src/content/projects/`: details at the top (title, status, year, description, role, tools, link, picture, images), the write-up below. Each gets a page at `/projects/<file-name>`.
 - `now.json`: the "Currently" list on the About page.
 - `gallery.json`, `shop.json`, `resume.json`: one entry per item. `gallery.json` also lists the album order (`albums`).
-- Gallery albums are Markdown files in `src/content/albums/`: details and the photo list at the top, the optional travel story below. Each gets a page at `/gallery/<file-name>`.
+- Gallery albums are Markdown files in `src/content/albums/`: details and the photo list at the top, the optional travel story below. Each gets a page at `/gallery/<file-name>`, laid out like a story. Notes and albums with a story are listed together on `/stories`.
 - `services.json`: addresses of the contact-form API and editor sign-in helper, and the spam-check site key (all public, no secrets).
 
 `picture` is a built-in drawing (`sea`, `room`, `pool`, `wall`, `dune`, `dusk`). To use your own image instead, set `photo` to an image under `public/images/`, for example `"/images/your-file.jpg"`.

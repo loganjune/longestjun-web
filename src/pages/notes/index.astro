@@ -1,23 +1,15 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PageHead from '../../components/PageHead.astro';
-import { url, formatDate } from '../../lib/url';
-import { getNotes } from '../../lib/notes';
-
-const notes = await getNotes();
+// Notes now live on the Stories page. This keeps old links working.
+import { url } from '../../lib/url';
+const to = url('stories');
 ---
-<Layout title="Notes" current="notes">
-  <PageHead title="Notes" jp="記録"><span class="soft">Short writing about making things.</span></PageHead>
-  <div class="g sec">
-    {notes.length === 0 && <p class="soft">No notes yet.</p>}
-    <ul class="rows">
-      {notes.map((n) => (
-        <li><a href={url(`notes/${n.id}`)} class="r" style="grid-template-columns:8em minmax(0,1fr) auto">
-          <span class="lab soft">{formatDate(n.data.date)}</span>
-          <span>{n.data.title}{n.data.description && <span class="soft" style="display:block;font-size:17px">{n.data.description}</span>}</span>
-          <span class="arrow">→</span>
-        </a></li>
-      ))}
-    </ul>
-  </div>
-</Layout>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="refresh" content={`0; url=${to}`} />
+  <link rel="canonical" href={to} />
+  <title>Stories · longest june</title>
+</head>
+<body><p><a href={to}>Notes are now on the Stories page.</a></p></body>
+</html>
