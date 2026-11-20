@@ -4,10 +4,11 @@ import Pic from '../components/Pic.astro';
 import Daylight from '../components/react/Daylight';
 import { site as S } from '../lib/content';
 import { getProjects, projectPicture } from '../lib/projects';
+import { photoArt, photoBand } from '../lib/overlays';
 import { url, PAGES, formatDate } from '../lib/url';
 import { getStories } from '../lib/stories';
 
-const featured = (await getProjects()).slice(0, 3).map((p) => ({ ...p.data, id: p.id, pic: projectPicture(p) }));
+const featured = (await getProjects()).slice(0, 3).map((p) => ({ ...p.data, id: p.id, pic: projectPicture(p), art: photoArt(p.id, p.data.photo), band: photoBand(p.id, p.data.photo) }));
 const stories = (await getStories()).slice(0, 3);
 const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
 ---
@@ -50,12 +51,9 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
     <div class="plate feat" id="feat">
       {featured.map((p, i) => (
         <div class="fslide fill" data-off={i > 0 ? '' : undefined}>
-          {/* With a photo: half the project's drawing, half the photo, side by side. */}
-          {p.photo?.trim() && p.picture ? (
-            <div class="duo"><div class="fill"><Pic picture={p.picture} /></div><div class="fill"><Pic picture={p.photo} /></div></div>
-          ) : (
-            <Pic picture={p.pic} />
-          )}
+          {/* Half photo, half drawing: graphics drawn over the photo (src/lib/overlays.ts), else the plain picture. */}
+          {p.art ? <Fragment set:html={p.art} /> : <Pic picture={p.pic} />}
+          {p.band && <div class="feat-band" style={`--band:${p.band}`} />}
         </div>
       ))}
       <h2 class="disp fit"><span id="feattitle">{featured[0].title}</span></h2>
@@ -123,5 +121,8 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
       year.textContent = b.dataset.year!;
       (window as any).queueFit?.();
     });
+    // A slide's title band (e.g. Pool Tile's pink) is as tall as the title, which is sized to fit the width.
+    const h2 = feat.querySelector('h2')!;
+    new ResizeObserver(() => feat.style.setProperty('--title-h', `${h2.offsetTop + h2.offsetHeight}px`)).observe(h2);
   }
 </script>

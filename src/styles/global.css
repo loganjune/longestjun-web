@@ -82,10 +82,8 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 .feat .meta{position:absolute;right:max(2.2vw,16px);bottom:30px;color:#fff;text-align:right}
 .feat .fslide{position:absolute;inset:0;transition:opacity .9s ease}
 .feat .fslide[data-off]{opacity:0}
-/* Half drawing, half photo: two panels with a thin sand seam; stacked on phones. */
-.duo{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg)}
-.duo>.fill{position:relative;overflow:hidden}
-@media(max-width:640px){.duo{grid-template-columns:none;grid-template-rows:1fr 1fr}}
+/* A colour band behind the title (as tall as the title; set by the slider script), with a thin coping line. */
+.feat-band{position:absolute;left:0;right:0;top:0;height:calc(var(--title-h,1em) + .6vw);background:var(--band);opacity:.94;border-bottom:clamp(4px,.5vw,8px) solid #e6c9cd}
 @media(prefers-reduced-motion:reduce){.feat .fslide{transition:none}}
 /* page heads */
 .phead{padding-top:120px;padding-bottom:28px;border-bottom:1px solid var(--rule)}
