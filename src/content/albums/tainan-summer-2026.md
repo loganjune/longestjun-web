@@ -12,10 +12,9 @@ photos: [
   {"photo":"/images/albums/2026-11-img-6437-cxij.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6477-mztp.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6489-x1s7.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-6501-g77o.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6442-cmd7.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-6423-adzo.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-6420-zgs8.webp","caption":""}
+  {"photo":"/images/albums/2026-11-img-6420-zgs8.webp","caption":""},
+  {"photo":"/images/albums/2026-11-img-6501-g77o.webp","caption":""}
 ]
 ---
 
