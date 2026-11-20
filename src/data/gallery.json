@@ -11,6 +11,11 @@
       "caption": "Morning haze"
     },
     {
+      "picture": "room",
+      "photo": "",
+      "caption": "West window"
+    },
+    {
       "picture": "sea",
       "photo": "/images/gallery/2026-11-after-the-rain.webp",
       "caption": "After the rain"
@@ -26,19 +31,19 @@
       "caption": "The long walk to the water"
     },
     {
-      "picture": "wall",
-      "photo": "",
-      "caption": "Afternoon, plaster"
-    },
-    {
       "picture": "sea",
       "photo": "/images/gallery/2026-11-shoreline-print.webp",
       "caption": "Shoreline"
     },
     {
-      "picture": "room",
+      "picture": "wall",
       "photo": "",
-      "caption": "West window"
+      "caption": "Afternoon, plaster"
+    },
+    {
+      "picture": "dusk",
+      "photo": "",
+      "caption": "Twenty past eight"
     },
     {
       "picture": "sea",
@@ -56,18 +61,13 @@
       "caption": "Garden pond"
     },
     {
-      "picture": "dusk",
-      "photo": "",
-      "caption": "Twenty past eight"
-    },
-    {
       "picture": "sea",
       "photo": "/images/gallery/2026-11-garden-path.webp",
       "caption": "Garden path at dusk"
     },
     {
       "picture": "sea",
-      "photo": "/images/gallery/2026-11-pool-day.webp",
+      "photo": "/images/gallery/2026-11-pool-day-smcr.webp",
       "caption": "Pool day"
     }
   ],
