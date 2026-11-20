@@ -45,9 +45,11 @@ type Props = {
    */
   chooseDestination?: (count: number) => Promise<string | null | undefined>;
   onAddToAlbum?: (photos: string[], albumId: string) => void;
+  /** The upload button's text (default "Add photos"). */
+  addLabel?: string;
 };
 
-export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, onCover, emptyText, dropTargets, onDropTarget, onMoveOut, chooseDestination, onAddToAlbum }: Props) {
+export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, onCover, emptyText, dropTargets, onDropTarget, onMoveOut, chooseDestination, onAddToAlbum, addLabel = 'Add photos' }: Props) {
   const grid = useRef<HTMLOListElement>(null);
   const latest = useRef(photos);
   latest.current = photos;
@@ -136,7 +138,7 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
     >
       <div className="pg-tools">
         <label className="ed-btn solid">
-          <Icon name="photo" size={16} /> Add photos
+          <Icon name="photo" size={16} /> {addLabel}
           <input
             type="file"
             accept={PHOTO_ACCEPT}

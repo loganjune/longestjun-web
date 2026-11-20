@@ -9,6 +9,8 @@ import resumeFile from '../data/resume.json';
 
 export const now = nowFile.now;
 export const gallery = galleryFile.gallery;
+/** The Drawings section under the photos on the Gallery page. */
+export const galleryDrawings: { picture?: string; photo?: string; caption: string }[] = (galleryFile as { drawings?: [] }).drawings ?? [];
 /** Album ids (file names in src/content/albums/) in the order they appear on the Gallery page. */
 export const galleryAlbumOrder: string[] = galleryFile.albums ?? [];
 /** The album shown large at the top of the Gallery page ('' for none). */

@@ -7,23 +7,8 @@
     },
     {
       "picture": "sea",
-      "photo": "",
-      "caption": "Morning haze"
-    },
-    {
-      "picture": "room",
-      "photo": "",
-      "caption": "West window"
-    },
-    {
-      "picture": "sea",
       "photo": "/images/gallery/2026-11-after-the-rain.webp",
       "caption": "After the rain"
-    },
-    {
-      "picture": "pool",
-      "photo": "",
-      "caption": "Lane four"
     },
     {
       "picture": "sea",
@@ -36,24 +21,9 @@
       "caption": "Shoreline"
     },
     {
-      "picture": "wall",
-      "photo": "",
-      "caption": "Afternoon, plaster"
-    },
-    {
-      "picture": "dusk",
-      "photo": "",
-      "caption": "Twenty past eight"
-    },
-    {
       "picture": "sea",
       "photo": "/images/gallery/2026-11-night-walk.webp",
       "caption": "Night walk"
-    },
-    {
-      "picture": "dune",
-      "photo": "",
-      "caption": "Soft dunes"
     },
     {
       "picture": "sea",
@@ -69,6 +39,38 @@
       "picture": "sea",
       "photo": "/images/gallery/2026-11-pool-day-649q.webp",
       "caption": "Pool day"
+    }
+  ],
+  "drawings": [
+    {
+      "picture": "sea",
+      "photo": "",
+      "caption": "Morning haze"
+    },
+    {
+      "picture": "room",
+      "photo": "",
+      "caption": "West window"
+    },
+    {
+      "picture": "pool",
+      "photo": "",
+      "caption": "Lane four"
+    },
+    {
+      "picture": "wall",
+      "photo": "",
+      "caption": "Afternoon, plaster"
+    },
+    {
+      "picture": "dusk",
+      "photo": "",
+      "caption": "Twenty past eight"
+    },
+    {
+      "picture": "dune",
+      "photo": "",
+      "caption": "Soft dunes"
     }
   ],
   "albums": [

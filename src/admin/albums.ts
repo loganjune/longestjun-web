@@ -2,7 +2,7 @@
 // (src/admin/react/); this file loads and saves their data and plugs them into the editor.
 //
 // Files:
-// - src/data/gallery.json: single photos ("gallery") and the order of albums ("albums").
+// - src/data/gallery.json: single photos ("gallery"), drawings ("drawings") and the order of albums ("albums").
 // - src/content/albums/<id>.md: one album. Details and photos in the header; the travel story below.
 import type { GitHub, Change } from './github';
 import { parseFrontmatter, serializeFrontmatter } from './frontmatter';
@@ -52,7 +52,7 @@ function parseAlbum(id: string, text: string): Album {
 
 export const loadAlbums = (gh: GitHub) => readItems(gh, DIR, parseAlbum);
 
-export type GalleryFile = { gallery: Photo[]; albums: string[]; featured?: string };
+export type GalleryFile = { gallery: Photo[]; drawings?: Photo[]; albums: string[]; featured?: string };
 async function readGallery(gh: GitHub): Promise<GalleryFile> {
   const g = JSON.parse((await gh.readText(GALLERY)) || '{}');
   return { ...g, gallery: g.gallery || [], albums: g.albums || [] };
@@ -100,7 +100,7 @@ export async function galleryView(gh: GitHub, onSaved: () => void): Promise<View
   return {
     title: 'Gallery',
     jp: '写真',
-    intro: 'Single photos first, then albums, like the Gallery page. The ★ album is featured at the top. Drag to reorder, or drag a photo onto an album to move it in.',
+    intro: 'Single photos, albums and drawings. The ★ album is featured at the top of the Gallery page. Drag to reorder, or drag a photo onto an album to move it in.',
     body: host,
     footer: bar.footer,
     isDirty: bar.isDirty,

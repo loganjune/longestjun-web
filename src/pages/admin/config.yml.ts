@@ -172,6 +172,14 @@ const config = {
           summary: '{{fields.caption}}',
           fields: [text('caption', 'Caption'), photo, drawing],
         }, {
+          name: 'drawings',
+          label: 'Drawings',
+          label_singular: 'Drawing',
+          widget: 'list',
+          required: false,
+          summary: '{{fields.caption}}',
+          fields: [text('caption', 'Caption'), photo, drawing],
+        }, {
           // Kept so saving here doesn't wipe the album order set in the main editor.
           name: 'albums',
           label: 'Album order (file names)',

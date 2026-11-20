@@ -1,5 +1,6 @@
 // The editor's Gallery screen: single photos (drag to reorder, captions, crop), then the albums
-// (drag to set their order; click one to edit it; ★ features one at the top of the Gallery page). Drag a single photo onto an album, or use
+// (drag to set their order; click one to edit it; ★ features one at the top of the Gallery page), then
+// the drawings (their own section on the Gallery page). Drag a single photo onto an album, or use
 // its "Move to album" button, to move it into that album.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import PhotoGrid, { Thumb } from './PhotoGrid';
@@ -32,6 +33,7 @@ export default function GalleryEditor({ gallery: initial, albums: initialAlbums,
   );
 
   const setPhotos = useCallback((photos: Photo[]) => emit({ ...latest.current.g, gallery: photos }, latest.current.albums), [emit]);
+  const setDrawings = useCallback((drawings: Photo[]) => emit({ ...latest.current.g, drawings }, latest.current.albums), [emit]);
 
   /** Moves single photo `i` to the end of album `id`. */
   const moveToAlbum = useCallback(
@@ -167,6 +169,20 @@ export default function GalleryEditor({ gallery: initial, albums: initialAlbums,
             })}
           </ol>
         )}
+      </section>
+
+      <section className="ed-field">
+        <span className="lab">Drawings</span>
+        <span className="ed-hint">Shown in their own section under the photos on the Gallery page. Upload scans or pictures of your drawings.</span>
+        <PhotoGrid
+          photos={g.drawings || []}
+          onChange={setDrawings}
+          ctx={ctx}
+          folder="drawings"
+          make={(photo) => ({ picture: 'sea', photo, caption: '' })}
+          emptyText="No drawings yet."
+          addLabel="Add drawings"
+        />
       </section>
     </div>
   );

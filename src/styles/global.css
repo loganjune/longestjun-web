@@ -104,8 +104,11 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 .scatter .photo:nth-child(3n+2){padding-top:clamp(32px,4.5vw,72px)}
 .scatter .photo:nth-child(4n+1){width:91%;justify-self:end}
 .scatter .photo:nth-child(4n+3){width:88%;justify-self:start}
+/* A last row of two leaves the gap in the middle: the last picture moves to the right column (and drops the middle column's offset). */
+.scatter .photo:nth-child(3n+2):last-child{grid-column:3;padding-top:0}
 @media(max-width:820px){
   .scatter .photo:nth-child(3n+2){padding-top:0}
+  .scatter .photo:nth-child(3n+2):last-child{grid-column:auto}
   .scatter .photo:nth-child(2n){padding-top:clamp(32px,6vw,56px)}
 }
 @media(max-width:640px){
