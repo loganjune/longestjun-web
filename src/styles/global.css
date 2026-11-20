@@ -48,6 +48,8 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 .hero>h1,.hero>.cap,.hero>.tate{z-index:1;text-shadow:0 1px 14px rgba(58,44,39,.28)}
 .hero{height:min(100svh,980px);min-height:520px}
 .hero h1{position:absolute;left:0;right:0;bottom:max(14px,.16em);color:#fff;font-size:clamp(40px,11.5vw,220px);line-height:1;white-space:nowrap;text-align:center}
+/* 龍 (long, dragon): a small seal stamped after the name, like an artist's seal on a print. Pink only because it sits on the picture. */
+.hero h1 .seal{display:inline-grid;place-items:center;width:1.5em;height:1.5em;margin-left:.7em;vertical-align:2.4em;background:#d98f9b;color:#fff;border-radius:.15em;text-shadow:none;font:700 .2em/1 "Shippori Mincho",serif}
 .hero .tate{position:absolute;right:max(2.2vw,16px);top:42%;writing-mode:vertical-rl;color:#fff;font:500 17px/1 "Shippori Mincho",serif;letter-spacing:.5em}
 .hero .cap{position:absolute;left:max(2.2vw,16px);top:42%;color:#fff;max-width:16em;display:grid;gap:16px;justify-items:start}
 .vidbtn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.8);display:inline-flex;align-items:center;justify-content:center;color:#fff;transition:background-color .2s}
