@@ -82,6 +82,10 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 .feat .meta{position:absolute;right:max(2.2vw,16px);bottom:30px;color:#fff;text-align:right}
 .feat .fslide{position:absolute;inset:0;transition:opacity .9s ease}
 .feat .fslide[data-off]{opacity:0}
+/* Half drawing, half photo: two panels with a thin sand seam; stacked on phones. */
+.duo{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg)}
+.duo>.fill{position:relative;overflow:hidden}
+@media(max-width:640px){.duo{grid-template-columns:none;grid-template-rows:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){.feat .fslide{transition:none}}
 /* page heads */
 .phead{padding-top:120px;padding-bottom:28px;border-bottom:1px solid var(--rule)}
@@ -92,6 +96,9 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 .cards.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 .card .ph{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--bg)}
 .card.tall .ph{aspect-ratio:4/5}
+/* Gallery: uploaded photos show whole, at their own shape (so a white print border isn't cropped); drawings keep their tile. */
+.card.photo .ph:has(>img){aspect-ratio:auto}
+.card.photo .ph>img{position:static;height:auto}
 .card .cap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:baseline;padding-top:12px}
 .card h3{font:400 21px/1.25 "STIX Two Text",serif;margin:2px 0 0}
 a.card{display:block;text-decoration:none}

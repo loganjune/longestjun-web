@@ -2,8 +2,18 @@
   "gallery": [
     {
       "picture": "sea",
+      "photo": "/images/gallery/2026-11-window-seat-print.webp",
+      "caption": "Window seat"
+    },
+    {
+      "picture": "sea",
       "photo": "",
       "caption": "Morning haze"
+    },
+    {
+      "picture": "sea",
+      "photo": "/images/gallery/2026-11-after-the-rain.webp",
+      "caption": "After the rain"
     },
     {
       "picture": "pool",
@@ -11,9 +21,19 @@
       "caption": "Lane four"
     },
     {
+      "picture": "sea",
+      "photo": "/images/gallery/2026-11-the-long-walk.webp",
+      "caption": "The long walk to the water"
+    },
+    {
       "picture": "wall",
       "photo": "",
       "caption": "Afternoon, plaster"
+    },
+    {
+      "picture": "sea",
+      "photo": "/images/gallery/2026-11-shoreline-print.webp",
+      "caption": "Shoreline"
     },
     {
       "picture": "room",
@@ -21,14 +41,34 @@
       "caption": "West window"
     },
     {
+      "picture": "sea",
+      "photo": "/images/gallery/2026-11-night-walk.webp",
+      "caption": "Night walk"
+    },
+    {
       "picture": "dune",
       "photo": "",
       "caption": "Soft dunes"
     },
     {
+      "picture": "sea",
+      "photo": "/images/gallery/2026-11-garden-pond.webp",
+      "caption": "Garden pond"
+    },
+    {
       "picture": "dusk",
       "photo": "",
       "caption": "Twenty past eight"
+    },
+    {
+      "picture": "sea",
+      "photo": "/images/gallery/2026-11-garden-path.webp",
+      "caption": "Garden path at dusk"
+    },
+    {
+      "picture": "sea",
+      "photo": "/images/gallery/2026-11-pool-day.webp",
+      "caption": "Pool day"
     }
   ],
   "albums": [

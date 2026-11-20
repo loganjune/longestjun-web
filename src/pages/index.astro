@@ -48,7 +48,16 @@ const explore = PAGES.filter((p) => p.href && p.href !== 'contact');
 
   {featured.length > 0 && (
     <div class="plate feat" id="feat">
-      {featured.map((p, i) => <div class="fslide fill" data-off={i > 0 ? '' : undefined}><Pic picture={p.pic} /></div>)}
+      {featured.map((p, i) => (
+        <div class="fslide fill" data-off={i > 0 ? '' : undefined}>
+          {/* With a photo: half the project's drawing, half the photo, side by side. */}
+          {p.photo?.trim() && p.picture ? (
+            <div class="duo"><div class="fill"><Pic picture={p.picture} /></div><div class="fill"><Pic picture={p.photo} /></div></div>
+          ) : (
+            <Pic picture={p.pic} />
+          )}
+        </div>
+      ))}
       <h2 class="disp fit"><span id="feattitle">{featured[0].title}</span></h2>
       <nav class="lab" id="featnav" aria-label="Featured projects">
         {featured.map((p, i) => <button type="button" data-i={i} data-status={p.status} data-year={p.year} aria-current={i === 0 ? 'true' : 'false'}>{p.title}</button>)}
