@@ -49,7 +49,7 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 .hero{height:min(100svh,980px);min-height:520px}
 .hero h1{position:absolute;left:0;right:0;bottom:max(14px,.16em);color:#fff;font-size:clamp(40px,11.5vw,220px);line-height:1;white-space:nowrap;text-align:center}
 /* 龍 (long, dragon): a small character after the name, like an artist's mark on a print. Plain white, no box. */
-.hero h1 .seal{margin-left:.45em;vertical-align:1.75em;font:700 .26em/1 "Shippori Mincho",serif}
+.hero h1 .seal{margin-left:.35em;vertical-align:2.9em;font:500 .16em/1 "Shippori Mincho",serif;opacity:.55}
 .hero .tate{position:absolute;right:max(2.2vw,16px);top:42%;writing-mode:vertical-rl;color:#fff;font:500 17px/1 "Shippori Mincho",serif;letter-spacing:.5em}
 .hero .cap{position:absolute;left:max(2.2vw,16px);top:42%;color:#fff;max-width:16em;display:grid;gap:16px;justify-items:start}
 .vidbtn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.8);display:inline-flex;align-items:center;justify-content:center;color:#fff;transition:background-color .2s}
@@ -76,10 +76,13 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 /* featured slider */
 .feat{height:min(92svh,860px);min-height:480px}
 .feat h2{position:absolute;left:0;right:0;top:-.08em;color:#fff;font-size:clamp(40px,11vw,210px);text-align:center;white-space:nowrap;overflow:hidden}
-.feat nav{position:absolute;left:max(2.2vw,16px);bottom:24px;display:grid;gap:2px;color:#fff}
-.feat nav button{text-align:left;padding:8px 0;opacity:.7;border-bottom:1px solid transparent;min-height:36px}
+/* The project names and status: a soft warm fade along the bottom and a text shadow keep them readable on any photo. */
+.feat::after{content:"";position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(to top,rgba(58,44,39,.42),rgba(58,44,39,0));pointer-events:none}
+.feat nav{position:absolute;z-index:1;left:max(2.2vw,16px);bottom:24px;display:grid;gap:2px;color:#fff;text-shadow:0 1px 10px rgba(58,44,39,.45)}
+.feat nav button{font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;text-align:left;padding:8px 0;opacity:.82;border-bottom:1px solid transparent;min-height:36px}
+.feat nav button:hover{opacity:1}
 .feat nav button[aria-current=true]{opacity:1;border-bottom-color:#fff}
-.feat .meta{position:absolute;right:max(2.2vw,16px);bottom:30px;color:#fff;text-align:right}
+.feat .meta{position:absolute;z-index:1;right:max(2.2vw,16px);bottom:30px;color:#fff;text-align:right;text-shadow:0 1px 10px rgba(58,44,39,.45)}
 .feat .fslide{position:absolute;inset:0;transition:opacity .9s ease}
 .feat .fslide[data-off]{opacity:0}
 /* A colour band behind the title (as tall as the title; set by the slider script), with a thin coping line. */
