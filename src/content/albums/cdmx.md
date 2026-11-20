@@ -6,7 +6,6 @@ description: "i'm in love w/ the food and culture scene of this place. another c
 tags: [
   "Travel"
 ]
-cover: "/images/albums/2026-11-img-6947-4d3u.webp"
 photos: [
   {"photo":"/images/albums/2026-11-img-7110-bqy5.webp","caption":"i just watched hadestown"},
   {"photo":"/images/albums/2026-11-img-7102-3ci4.webp","caption":"the trees of la condesa"},
@@ -15,7 +14,7 @@ photos: [
   {"photo":"/images/albums/2026-11-img-6975-a32n.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6967-04ds.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6966-1iuq.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-6947-4d3u.webp","caption":""},
+  {"photo":"/images/albums/2026-11-img-6947-0m62.webp","caption":"finding the angel"},
   {"photo":"/images/albums/2026-11-img-6729-2vzl.webp","caption":"frida"},
   {"photo":"/images/albums/2026-11-img-7117-anie.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-7122-f82x.webp","caption":"horse mackarel"},
