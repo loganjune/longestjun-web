@@ -1,5 +1,5 @@
 ---
-title: "tainan, summer 2026"
+title: "tainan, taiwan 2026"
 location: "tainan, taiwan"
 date: 2026-11-05
 description: "tainan is known for their food scene. it's a little slower than the main cities in taipei. it's a cozy town w/ a lot of japanese influence."
