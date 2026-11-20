@@ -1,16 +1,41 @@
 // The bar above a filtered list (Stories, Projects, Albums): a label on the left, then a row of
 // toggle buttons ("All" plus the choices). Shared so the three pages behave alike.
+// With `open`/`onToggle`, the label becomes a button with a chevron that folds the section away.
 import type { ReactNode } from 'react';
 
-type Props = { label: ReactNode; live?: boolean; choices: string[]; value: string; onChange: (v: string) => void; groupLabel: string };
+type Props = {
+  label: ReactNode;
+  live?: boolean;
+  choices: string[];
+  value: string;
+  onChange: (v: string) => void;
+  groupLabel: string;
+  open?: boolean;
+  onToggle?: () => void;
+  controls?: string;
+};
 
-export default function FilterBar({ label, live, choices, value, onChange, groupLabel }: Props) {
+/** The small chevron used by every collapsible section (turns to point right when folded). */
+export const Chevron = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
+export default function FilterBar({ label, live, choices, value, onChange, groupLabel, open = true, onToggle, controls }: Props) {
   return (
     <div className="split proj-bar">
-      <span className={live ? 'lab soft' : 'lab'} aria-live={live ? 'polite' : undefined}>
-        {label}
-      </span>
-      {choices.length > 1 && (
+      {onToggle ? (
+        <button type="button" className="lab sec-toggle" aria-expanded={open} aria-controls={controls} onClick={onToggle}>
+          {label}
+          <Chevron />
+        </button>
+      ) : (
+        <span className={live ? 'lab soft' : 'lab'} aria-live={live ? 'polite' : undefined}>
+          {label}
+        </span>
+      )}
+      {open && choices.length > 1 && (
         <div className="filters lab" role="group" aria-label={groupLabel}>
           {choices.map((c) => (
             <button key={c} type="button" aria-pressed={c === value} onClick={() => onChange(c)}>

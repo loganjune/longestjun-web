@@ -1,5 +1,5 @@
 // The Gallery page's albums: cover cards with the album's name over the cover (it fades on hover),
-// and a tag filter when albums have tags. The featured album is shown
+// a tag filter when albums have tags, and a chevron on the label to fold the section away. The featured album is shown
 // separately at the top of the page.
 import { useState } from 'react';
 import { Picture } from './Picture';
@@ -9,12 +9,13 @@ type Album = { id: string; href: string; title: string; location: string; date: 
 
 export default function AlbumsIndex({ albums, tags }: { albums: Album[]; tags: string[] }) {
   const [filter, setFilter] = useState('All');
+  const [open, setOpen] = useState(true); // open each time the page loads
   const shown = albums.filter((a) => filter === 'All' || a.tags.includes(filter));
 
   return (
     <>
-      <FilterBar label="Albums" choices={['All', ...tags]} value={filter} onChange={setFilter} groupLabel="Show albums tagged" />
-      <div key={filter}>
+      <FilterBar label="Albums" choices={['All', ...tags]} value={filter} onChange={setFilter} groupLabel="Show albums tagged" open={open} onToggle={() => setOpen((o) => !o)} controls="sec-albums" />
+      <div key={filter} id="sec-albums" hidden={!open}>
         {shown.length > 0 && (
           <div className="cards">
             {shown.map((a, i) => (

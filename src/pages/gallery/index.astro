@@ -46,14 +46,27 @@ const others = albumCards.filter((a) => a !== featured);
   )}
   {gallery.length > 0 && (
     <div class="g sec">
-      <div class="split proj-bar"><span class="lab">Selected photos</span></div>
-      <PhotoGallery client:visible label="Gallery" photos={gallery.map((g) => ({ picture: pic(g), caption: g.caption }))} />
+      <div class="split proj-bar"><button type="button" class="lab sec-toggle" aria-expanded="true" aria-controls="sec-photos">Selected photos <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button></div>
+      <div id="sec-photos"><PhotoGallery client:visible label="Gallery" photos={gallery.map((g) => ({ picture: pic(g), caption: g.caption }))} /></div>
     </div>
   )}
   {galleryDrawings.length > 0 && (
     <div class="g sec">
-      <div class="split proj-bar"><span class="lab">Drawings</span></div>
-      <PhotoGallery client:visible label="Drawings" photos={galleryDrawings.map((d) => ({ picture: pic(d), caption: d.caption }))} />
+      <div class="split proj-bar"><button type="button" class="lab sec-toggle" aria-expanded="true" aria-controls="sec-drawings">Drawings <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button></div>
+      <div id="sec-drawings"><PhotoGallery client:visible label="Drawings" photos={galleryDrawings.map((d) => ({ picture: pic(d), caption: d.caption }))} /></div>
     </div>
   )}
 </Layout>
+
+<script>
+  // Selected photos and Drawings: the chevron on each label folds the section away (open on every visit).
+  document.querySelectorAll<HTMLButtonElement>('button.sec-toggle[aria-controls^="sec-"]').forEach((b) => {
+    const body = document.getElementById(b.getAttribute('aria-controls')!);
+    if (!body || b.closest('astro-island')) return; // Albums handles its own (React)
+    b.addEventListener('click', () => {
+      const open = b.getAttribute('aria-expanded') !== 'true';
+      b.setAttribute('aria-expanded', String(open));
+      body.hidden = !open;
+    });
+  });
+</script>
