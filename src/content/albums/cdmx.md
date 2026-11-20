@@ -8,18 +8,18 @@ tags: [
 ]
 cover: "/images/albums/2026-11-img-6947-4d3u.webp"
 photos: [
-  {"photo":"/images/albums/2026-11-img-7110-bqy5.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-7102-3ci4.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-6996-nv4r.webp","caption":""},
+  {"photo":"/images/albums/2026-11-img-7110-bqy5.webp","caption":"i just watched hadestown"},
+  {"photo":"/images/albums/2026-11-img-7102-3ci4.webp","caption":"the trees of la condesa"},
+  {"photo":"/images/albums/2026-11-img-6996-nv4r.webp","caption":"la condesa"},
   {"photo":"/images/albums/2026-11-img-6982-jc8l.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6975-a32n.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6967-04ds.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6966-1iuq.webp","caption":""},
   {"photo":"/images/albums/2026-11-img-6947-4d3u.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-6729-2vzl.webp","caption":""},
+  {"photo":"/images/albums/2026-11-img-6729-2vzl.webp","caption":"frida"},
   {"photo":"/images/albums/2026-11-img-7117-anie.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-7122-f82x.webp","caption":""},
-  {"photo":"/images/albums/2026-11-img-7130-2w27.webp","caption":""}
+  {"photo":"/images/albums/2026-11-img-7122-f82x.webp","caption":"horse mackarel"},
+  {"photo":"/images/albums/2026-11-img-7130-2w27.webp","caption":"maizajo, tacos cooked at the counter in front of you"}
 ]
 ---
 
