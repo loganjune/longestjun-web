@@ -42,7 +42,7 @@ Personal portfolio site, "a little hub for my projects and the things I'm buildi
 - `src/components/Pic.astro`: `picture` is either a built-in drawing name (`sea room pool wall dune dusk`, generated SVG in `src/lib/scene.ts`) or an image path under `public/images/`.
 - `src/lib/url.ts`: `url()` prefixes the base path (now just `/`). Keep using it for internal links and assets so the site still works if a base path is ever added again. `PAGES` drives the menu, footer and explore lists.
 - `src/layouts/Layout.astro`: head, fixed top bar, full-screen menu, footer, plus client scripts (menu, top-bar state, `.fit` text sizing).
-- `public/hero.mp4` / `hero.jpg`: homepage video and poster.
+- `public/hero.mp4` / `hero.jpg`: homepage video and poster. Edited Nov 19 2026 at the owner's request: the two trash bins on the sand were removed (tracked frame by frame) and the far mountains tinted a soft, hazy green to match the photo's saturation.
 
 ## Design (decided with the owner; keep it)
 
