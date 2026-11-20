@@ -1,8 +1,6 @@
 ---
-title: brewing something
+title: "brewing something"
 date: 2026-11-18
-description: ''
-draft: false
 ---
 
-this is a test
+brewing means having some patience for the best results. :)
