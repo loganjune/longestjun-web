@@ -2,7 +2,7 @@
 title: "mexico city, mexico 2026"
 location: "mexico city, mexico"
 date: 2026-11-06
-description: "i'm in love w/ the food and culture scene of this place. another city with endless inspiration just by walking down the street. so much inspiration in the meals themselves as well."
+description: "i'm in love w/ the food and culture scene of this place. another city with endless inspiration just by walking down the street. so much to learn and be inspired by in the meals themselves as well. i ended up walking 3.5 hours one morning just fascinated by everything i was seeing."
 tags: [
   "Travel"
 ]
