@@ -99,6 +99,19 @@ header .right{text-decoration:none;min-height:44px;display:inline-flex;align-ite
 /* Gallery: uploaded photos show whole, at their own shape (so a white print border isn't cropped); drawings keep their tile. */
 .card.photo .ph:has(>img){aspect-ratio:auto}
 .card.photo .ph>img{position:static;height:auto}
+/* Gallery grid (padding, since the figures carry an inline margin): gentle offsets, like prints pinned a little unevenly (quieter than an album's photo book).
+   The middle column sits lower; some pictures are a touch narrower and lean to one side. */
+.scatter .photo:nth-child(3n+2){padding-top:clamp(32px,4.5vw,72px)}
+.scatter .photo:nth-child(4n+1){width:91%;justify-self:end}
+.scatter .photo:nth-child(4n+3){width:88%;justify-self:start}
+@media(max-width:820px){
+  .scatter .photo:nth-child(3n+2){padding-top:0}
+  .scatter .photo:nth-child(2n){padding-top:clamp(32px,6vw,56px)}
+}
+@media(max-width:640px){
+  .scatter .photo:nth-child(2n){padding-top:0}
+  .scatter .photo:nth-child(4n+1),.scatter .photo:nth-child(4n+3){width:90%}
+}
 .card .cap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:baseline;padding-top:12px}
 .card h3{font:400 21px/1.25 "STIX Two Text",serif;margin:2px 0 0}
 a.card{display:block;text-decoration:none}

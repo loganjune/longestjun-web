@@ -237,6 +237,32 @@ export async function addPhotoEdited(file: File, folder: string, ctx: Ctx): Prom
 }
 
 /** Opens the photo editor (crop, rotate, look) for a photo already in the editor; returns the new photo's path, or null. */
+/** Opens a built-in drawing (sea, pool…) in the photo editor; saving makes it an ordinary photo. */
+export async function editDrawing(picture: string, folder: string, ctx: Ctx): Promise<string | null> {
+  const edited = await cropPhoto(await drawingBlob(picture));
+  if (!edited || edited === 'as-is') return null;
+  return keepPhoto(edited, picture, folder, ctx);
+}
+
+/** A built-in drawing as a 2400 × 1600 PNG. */
+async function drawingBlob(picture: string): Promise<Blob> {
+  const svg = scene(picture).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1600" ');
+  const img = new Image();
+  img.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  try {
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = 2400;
+    c.height = 1600;
+    c.getContext('2d')!.drawImage(img, 0, 0, 2400, 1600);
+    const blob = await new Promise<Blob | null>((r) => c.toBlob(r, 'image/png'));
+    if (!blob) throw new Error('Couldn’t open the drawing.');
+    return blob;
+  } finally {
+    URL.revokeObjectURL(img.src);
+  }
+}
+
 export async function editPhoto(sitePath: string, folder: string, ctx: Ctx): Promise<string | null> {
   const edited = await cropPhoto(await photoBlob(sitePath));
   if (!edited || edited === 'as-is') return null;

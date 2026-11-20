@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
 import { sortable, moveItem } from '../sortable';
-import { addPhoto, addPhotoEdited, editPhoto, type Ctx } from '../forms';
+import { addPhoto, addPhotoEdited, editPhoto, editDrawing, type Ctx } from '../forms';
 import { showImage, PHOTO_ACCEPT, isPhotoFile } from '../images';
 import { scene } from '../../lib/scene';
 import { toast, confirmBox, chooseBox } from '../ui';
@@ -70,9 +70,10 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
 
   const edit = async (i: number) => {
     const p = latest.current[i];
-    if (!p?.photo) return;
+    if (!p) return;
     try {
-      const path = await editPhoto(p.photo, folder, ctx);
+      // A built-in drawing opens in the editor too; once saved it's an ordinary photo.
+      const path = p.photo ? await editPhoto(p.photo, folder, ctx) : await editDrawing(p.picture || 'sea', folder, ctx);
       if (!path) return;
       const how = await chooseBox('Save the edited photo', 'Replace the original, or keep it and add the edited version as a new photo next to it?', [
         { label: 'Save as new photo', value: 'new' },
@@ -184,7 +185,7 @@ export default function PhotoGrid({ photos, onChange, ctx, folder, make, cover, 
                     aria-label={`Caption for photo ${i + 1}`}
                     onChange={(e) => set(i, { caption: e.target.value })}
                   />
-                  {p.photo && (
+                  {(p.photo || p.picture) && (
                     <button type="button" className="ed-icon" aria-label={`Edit photo ${i + 1}: crop, rotate, filters`} title="Edit photo" onClick={() => edit(i)}>
                       <Icon name="adjust" />
                     </button>

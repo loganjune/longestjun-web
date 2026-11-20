@@ -72,7 +72,7 @@ export default function PhotoGallery({ photos, label = 'Photos', layout = 'grid'
 
   return (
     <>
-      <div className={book ? 'book' : 'cards three'}>
+      <div className={book ? 'book' : 'cards three scatter'}>
         {photos.map((p, i) => (
           <figure
             key={i}
